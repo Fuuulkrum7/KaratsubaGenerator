@@ -96,6 +96,8 @@ class GraphVertexConst : public GraphVertex {
 
     int getConstValue() const { return constValue; }
 
+    std::string toVerilog();
+
   protected:
     int constValue;
 };

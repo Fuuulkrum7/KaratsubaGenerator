@@ -4,7 +4,7 @@
 #include <generator/KaratsubaGen.h>
 
 
-u_int32_t get_int() {
+int get_int() {
     int x = 0;
     std::string line;
     bool done = false;
@@ -32,19 +32,19 @@ u_int32_t get_int() {
 
 
 int main (int argc, char *args[]) {
-    int bit_depth = 0;
+    int bitDepth = 0;
 
     // used for geting n from terminal
     if (argc > 1) {
         std::stringstream ss(args[1]);
 
-        if (!((ss >> bit_depth) && ss.eof()) || bit_depth <= 0) {
-            bit_depth = get_int();
+        if (!((ss >> bitDepth) && ss.eof()) || bitDepth <= 0) {
+            bitDepth = get_int();
         }
     }
     else {
 
-        bit_depth = get_int();
+        bitDepth = get_int();
     }
     
 

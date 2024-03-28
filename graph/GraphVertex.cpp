@@ -116,12 +116,16 @@ uint16_t GraphVertex::getLower() const { return lower; }
 uint16_t GraphVertex::getUpper() const { return upper; }
 
 std::string GraphVertex::toVerilog() {
+    if (type == VertexType::Output) {
+        return "assign " + name + " = " + inConnection.back()->getName() + ";";
+    }
     // we do not need to call it, when we have input,
     // for example, because it parses an operation
     // in case of input, we just need to declare it
     // in special way
-    if (type != VertexType::Operation)
+    if (type != VertexType::Operation) {
         return "";
+    }
 
     std::string basic = getWireName() + " " + name + " = ";
 
@@ -160,6 +164,10 @@ std::string GraphVertex::toVerilog() {
 GraphVertexConst::GraphVertexConst(int constValue)
     : GraphVertex(VertexType::Const, OperationType::Default, 0, 0) {
     this->constValue = constValue;
+}
+
+std::string GraphVertexConst::toVerilog() {
+    return "localparam " + name + + " = " + std::to_string(constValue) + ";";
 }
 
 GraphVertexShift::GraphVertexShift(uint16_t shift, uint16_t upper,

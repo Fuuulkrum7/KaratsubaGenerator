@@ -6,6 +6,13 @@
 
 uint16_t OrientedGraph::count = 0;
 
+OrientedGraph::OrientedGraph() {
+    type = VertexType::Graph;
+
+    name = "Submodule_" + std::to_string(count);
+    ++count;
+}
+
 OrientedGraph::OrientedGraph(std::string name) {
     type = VertexType::Graph;
     if (name.size()) {
@@ -32,7 +39,7 @@ VertexPtr OrientedGraph::addInput(uint16_t upper, uint16_t lower) {
     return newVertex;
 }
 
-VertexPtr OrientedGraph::addOutut(uint16_t upper, uint16_t lower) {
+VertexPtr OrientedGraph::addOutput(uint16_t upper, uint16_t lower) {
     VertexPtr newVertex(new GraphVertex(VertexType::Output,
                                         OperationType::Default, upper, lower));
     vertexes[VertexType::Output].push_back(newVertex);
@@ -119,12 +126,69 @@ VertexPtr OrientedGraph::addOperation(OperationType type, uint16_t upper,
     return newVertex;
 }
 
+void OrientedGraph::addEdge(VertexPtr from, VertexPtr to) {
+    auto fromVert = std::static_pointer_cast<GraphVertex>(from);
+    auto toVert = std::static_pointer_cast<GraphVertex>(to);
+
+    toVert->addParent(fromVert);
+    fromVert->addChild(toVert);
+}
+
+void OrientedGraph::addEdges(std::vector<VertexPtr> from, VertexPtr to) {
+    auto toVert = std::static_pointer_cast<GraphVertex>(to);
+
+    for (auto elem : from) {
+        auto fromVert = std::static_pointer_cast<GraphVertex>(elem);
+
+        toVert->addParent(fromVert);
+        fromVert->addChild(toVert);
+    }
+}
+
 void OrientedGraph::setWriteStream(std::ofstream &out) {
     this->outFile.swap(out);
 }
 
+// for parsing graph to module instance
+std::string OrientedGraph::curInstToString() {
+    if (graphInstanceToVerilogCount == graphInstanceCount) {
+        throw std::out_of_range(
+            "Incorrect curInstToString call. All modules (" +
+            std::to_string(graphInstanceCount) + ") were already parsed");
+    }
+    std::string verilogTab = "  ";
+    // module_name module_name_inst_1 (
+    std::string module_ver = verilogTab + name + " " + name + "_inst_" +
+                             std::to_string(graphInstanceToVerilogCount) +
+                             " (\n";
+    for (auto inp : subGraphsInputsPtr[graphInstanceToVerilogCount]) {
+        module_ver += verilogTab + verilogTab;
+        module_ver += inp->getName() + ",\n";
+    }
+
+    for (int i = 0;
+         i < subGraphsOutputsPtr[graphInstanceToVerilogCount].size() - 1; ++i) {
+        auto out = subGraphsOutputsPtr[graphInstanceToVerilogCount][i];
+        module_ver += verilogTab + verilogTab;
+        module_ver += out->getName() + ",\n";
+    }
+    module_ver += verilogTab + verilogTab;
+    module_ver +=
+        subGraphsOutputsPtr[graphInstanceToVerilogCount].back()->getName() +
+        "\n";
+    module_ver += verilogTab + "); \n";
+
+    ++graphInstanceToVerilogCount;
+    return module_ver;
+}
+
 std::string OrientedGraph::toVerilog() {
     std::string verilogTab = "  ";
+    // if it's a subGraph and it was already parsed to .v file
+    // we can just return a new instance of module
+    if (!alreadyParsed && parentGraph.get() != nullptr) {
+        return curInstToString();
+    }
 
     outFile << "module " << name << "(\n" << verilogTab;
 
@@ -177,6 +241,8 @@ std::string OrientedGraph::toVerilog() {
                 << verilogTab;
     }
 
+    // writing wires for modules
+    // i thought it would look better
     for (auto [key, subOutputs] : subGraphsOutputsPtr) {
         for (auto subOutput : subOutputs) {
             auto outVert = std::static_pointer_cast<GraphVertex>(subOutput);
@@ -185,7 +251,8 @@ std::string OrientedGraph::toVerilog() {
                 subGraphOutputsByWireSize[outVert->getWireSize()] = {};
             }
 
-            subGraphOutputsByWireSize[outVert->getWireSize()].push_back(outVert);
+            subGraphOutputsByWireSize[outVert->getWireSize()].push_back(
+                outVert);
         }
     }
 
@@ -206,7 +273,34 @@ std::string OrientedGraph::toVerilog() {
         }
     }
 
-    if (parentGraph.get() != nullptr) {
+    outFile << "\n";
+    // writing consts
+    for (auto oper : vertexes[VertexType::Const]) {
+        outFile << verilogTab << oper->toVerilog() << "\n";
+    }
+
+    outFile << "\n";
+    // and all modules
+    for (auto sub : vertexes[VertexType::Graph]) {
+        outFile << sub->toVerilog();
+    }
+
+    outFile << "\n";
+    // and all operations
+    for (auto oper : vertexes[VertexType::Operation]) {
+        outFile << verilogTab << oper->toVerilog() << "\n";
+    }
+
+    outFile << "\n";
+    // and all outputs
+    for (auto oper : vertexes[VertexType::Output]) {
+        outFile << verilogTab << oper->toVerilog() << "\n";
+    }
+
+    alreadyParsed = true;
+
+    if (parentGraph) {
+        return curInstToString();
     }
 
     return "";

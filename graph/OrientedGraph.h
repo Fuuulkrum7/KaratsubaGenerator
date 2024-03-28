@@ -15,6 +15,7 @@
 
 class OrientedGraph : public BasicType {
   public:
+    OrientedGraph();
     OrientedGraph(std::string name);
 
     OrientedGraph &operator=(const OrientedGraph &other) = default;
@@ -30,7 +31,7 @@ class OrientedGraph : public BasicType {
     std::string toVerilog();
 
     VertexPtr addInput(uint16_t upper = 0, uint16_t lower = 0);
-    VertexPtr addOutut(uint16_t upper = 0, uint16_t lower = 0);
+    VertexPtr addOutput(uint16_t upper = 0, uint16_t lower = 0);
     VertexPtr addOperation(OperationType type, uint16_t upper = 0,
                            uint16_t lower = 0, uint16_t shift = 0);
     VertexPtr addConst(int value);
@@ -44,6 +45,8 @@ class OrientedGraph : public BasicType {
     std::vector<VertexPtr> getVertexesByType(VertexType type) const;
 
     void setWriteStream(std::ofstream &out);
+
+    std::string curInstToString();
 
   protected:
     // in default is nullptr, when has a parent - is a subgraph
