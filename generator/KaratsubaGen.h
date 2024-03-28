@@ -21,7 +21,10 @@ class KaratsubaGen {
     GraphPtr startGeneration();
 
   private:
+    std::string algName = "Karatsuba";
     GraphPtr generate(uint32_t depth);
+
+    std::map<int, GraphPtr> createdGraphs;
 
     uint32_t bitDepth;
     GraphPtr graph;

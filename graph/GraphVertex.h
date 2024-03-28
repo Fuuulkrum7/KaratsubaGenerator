@@ -51,6 +51,8 @@ class GraphVertex : public BasicType {
     void addParent(VertexPtr vertex);
     void addChild(VertexPtr vertex);
 
+    std::string getName() const;
+
     std::vector<VertexPtr> getOutConnections() const;
     std::vector<VertexPtr> getInConnections() const;
 
@@ -80,7 +82,8 @@ class GraphVertex : public BasicType {
 // to save memory! More on 2 bytes :) and one function
 class GraphVertexShift : public GraphVertex {
   public:
-    GraphVertexShift(uint16_t shift, uint16_t upper = 0, uint16_t lower = 0);
+    GraphVertexShift(OperationType type, uint16_t shift, uint16_t upper = 0,
+                     uint16_t lower = 0);
 
     uint16_t getShift() const { return shift; }
 

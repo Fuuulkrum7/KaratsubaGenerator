@@ -44,11 +44,14 @@ class OrientedGraph : public BasicType {
 
     std::vector<VertexPtr> getVertexesByType(VertexType type) const;
 
-    void setWriteStream(std::ofstream &out);
+    void setWritePath(std::string path);
 
     std::string curInstToString();
+    static void setDefaultName(std::string name);
+    static std::string getDefaultName();
 
   protected:
+    static std::string defaultName;
     // in default is nullptr, when has a parent - is a subgraph
     GraphPtr parentGraph = nullptr;
 
@@ -80,7 +83,7 @@ class OrientedGraph : public BasicType {
     uint64_t graphInstanceToVerilogCount = 0;
 
   private:
-    std::ofstream outFile;
+    std::string path = "";
 };
 
 #endif

@@ -20,7 +20,7 @@ class BasicType {
     virtual std::string toVerilog();
     VertexType getType();
 
-    std::string getName() const;
+    virtual std::string getName() const;
     uint32_t getLevel() const;
 
     void setName(std::string name);

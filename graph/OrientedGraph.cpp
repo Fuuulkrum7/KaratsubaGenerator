@@ -5,11 +5,12 @@
 #include "OrientedGraph.h"
 
 uint16_t OrientedGraph::count = 0;
+std::string OrientedGraph::defaultName = "Submodule";
 
 OrientedGraph::OrientedGraph() {
     type = VertexType::Graph;
 
-    name = "Submodule_" + std::to_string(count);
+    name = defaultName + "_" + std::to_string(count);
     ++count;
 }
 
@@ -18,12 +19,20 @@ OrientedGraph::OrientedGraph(std::string name) {
     if (name.size()) {
         this->name = name;
     } else {
-        name = "Submodule_" + std::to_string(count);
+        name = defaultName + "_" + std::to_string(count);
         ++count;
     }
 }
 
 GraphPtr OrientedGraph::getParent() const { return parentGraph; }
+
+void OrientedGraph::setDefaultName(std::string name) {
+    defaultName = name;
+}
+
+std::string OrientedGraph::getDefaultName() {
+    return defaultName;
+}
 
 void OrientedGraph::setParent(GraphPtr parent) { parentGraph = parent; }
 
@@ -115,10 +124,10 @@ VertexPtr OrientedGraph::addOperation(OperationType type, uint16_t upper,
     VertexPtr newVertex;
 
     if (type == OperationType::RShift || type == OperationType::LShift) {
-        newVertex.reset(new GraphVertexShift(shift, upper, lower));
+        newVertex.reset(new GraphVertexShift(type, shift, upper, lower));
     } else {
         newVertex.reset(
-            new GraphVertex(VertexType::Operation, type, lower, upper));
+            new GraphVertex(VertexType::Operation, type, upper, lower));
     }
 
     vertexes[VertexType::Operation].push_back(newVertex);
@@ -145,8 +154,8 @@ void OrientedGraph::addEdges(std::vector<VertexPtr> from, VertexPtr to) {
     }
 }
 
-void OrientedGraph::setWriteStream(std::ofstream &out) {
-    this->outFile.swap(out);
+void OrientedGraph::setWritePath(std::string path) {
+    this->path = path;
 }
 
 // for parsing graph to module instance
@@ -189,7 +198,12 @@ std::string OrientedGraph::toVerilog() {
     if (!alreadyParsed && parentGraph.get() != nullptr) {
         return curInstToString();
     }
+    std::string curPath = path;
+    if (parentGraph.get() != nullptr) {
+        curPath += "/submodules";
+    }
 
+    std::ofstream outFile(curPath + "/" + name + ".v");
     outFile << "module " << name << "(\n" << verilogTab;
 
     std::map<int, std::vector<VertexPtr>> inputByWireSize;
@@ -263,7 +277,7 @@ std::string OrientedGraph::toVerilog() {
             outFile << VertexUtils::vertexTypeToString(value.back()->getType())
                     << " ";
             if (key) {
-                outFile << "[ " << key << " : 0 ] ";
+                outFile << "[" << key << " : 0] ";
             }
 
             for (int i = 0; i < value.size() - 1; ++i) {
@@ -273,19 +287,25 @@ std::string OrientedGraph::toVerilog() {
         }
     }
 
-    outFile << "\n";
+    if (vertexes[VertexType::Const].size()) {
+        outFile << "\n";
+    }
     // writing consts
     for (auto oper : vertexes[VertexType::Const]) {
         outFile << verilogTab << oper->toVerilog() << "\n";
     }
 
-    outFile << "\n";
+    if (vertexes[VertexType::Graph].size()) {
+        outFile << "\n";
+    }
     // and all modules
     for (auto sub : vertexes[VertexType::Graph]) {
         outFile << sub->toVerilog();
     }
 
-    outFile << "\n";
+    if (vertexes[VertexType::Operation].size()) {
+        outFile << "\n";
+    }
     // and all operations
     for (auto oper : vertexes[VertexType::Operation]) {
         outFile << verilogTab << oper->toVerilog() << "\n";
@@ -296,6 +316,8 @@ std::string OrientedGraph::toVerilog() {
     for (auto oper : vertexes[VertexType::Output]) {
         outFile << verilogTab << oper->toVerilog() << "\n";
     }
+
+    outFile << "endmodule";
 
     alreadyParsed = true;
 

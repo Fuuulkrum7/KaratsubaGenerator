@@ -1,14 +1,15 @@
+#include <fstream>
 #include <iostream>
 #include <sstream>
+#include <filesystem>
 
 #include <generator/KaratsubaGen.h>
-
 
 int get_int() {
     int x = 0;
     std::string line;
     bool done = false;
-    
+
     std::cout << "Please, input an integer (more than 0)" << std::endl;
 
     while (!done && std::getline(std::cin, line)) {
@@ -30,8 +31,7 @@ int get_int() {
     return x;
 }
 
-
-int main (int argc, char *args[]) {
+int main(int argc, char *args[]) {
     int bitDepth = 0;
 
     // used for geting n from terminal
@@ -41,13 +41,21 @@ int main (int argc, char *args[]) {
         if (!((ss >> bitDepth) && ss.eof()) || bitDepth <= 0) {
             bitDepth = get_int();
         }
-    }
-    else {
+    } else {
 
         bitDepth = get_int();
     }
-    
 
+    KaratsubaGen gen(bitDepth);
+
+    GraphPtr graph = gen.startGeneration();
+
+    std::string path = "dataset/";
+    std::filesystem::create_directories(path);
+
+    graph->setWritePath(path);
+
+    graph->toVerilog();
 
     return 0;
 }
