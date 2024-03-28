@@ -2,6 +2,7 @@ add_library(
   Graph 
   SHARED 
   BasicType.h
+  BasicType.cpp
   GraphVertex.h
   GraphVertex.cpp
   OrientedGraph.h

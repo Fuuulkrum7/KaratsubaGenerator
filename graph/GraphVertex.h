@@ -7,7 +7,7 @@
 
 #include "BasicType.h"
 
-using VertexPtr = std::shared_ptr<BasicType>;
+#define VertexPtr std::shared_ptr<BasicType>
 
 enum OperationType {
     Default,
@@ -27,32 +27,9 @@ enum OperationType {
 };
 
 namespace VertexUtils {
-std::string operationToString(OperationType type) {
-    switch (type) {
-    case OperationType::Not:
-        return "~";
-    case OperationType::And:
-    case OperationType::Nand:
-        return "&";
-    case OperationType::Or:
-    case OperationType::Nor:
-        return "|";
-    case OperationType::Xor:
-    case OperationType::Xnor:
-        return "^";
-    case OperationType::Sum:
-        return "+";
-    case OperationType::Dif:
-        return "-";
-    case OperationType::LShift:
-        return "<<";
-    case OperationType::RShift:
-        return ">>";
-    // Buf, Default
-    default:
-        return "";
-    }
-}
+std::string operationToString(OperationType type);
+
+std::string vertexTypeToString(VertexType type);
 } // namespace VertexUtils
 
 // When we call toVerilog, we want to get string
@@ -62,27 +39,28 @@ class GraphVertex : public BasicType {
     // is it [a:b] vertex, values b and a
     GraphVertex(VertexType type,
                 OperationType operation = OperationType::Default,
-                uint16_t lower = 0, uint16_t upper = 0);
+                uint16_t upper = 0, uint16_t lower = 0, std::string name = "");
 
     GraphVertex &operator=(const GraphVertex &other) = default;
     GraphVertex &operator=(GraphVertex &&other) = default;
     GraphVertex(const GraphVertex &other) = default;
     GraphVertex(GraphVertex &&other) = default;
 
-    virtual std::string getTypeName() const;
+    std::string getTypeName() const;
 
-    virtual void addParent(VertexPtr vertex);
-    virtual void addChild(VertexPtr vertex);
+    void addParent(VertexPtr vertex);
+    void addChild(VertexPtr vertex);
 
-    virtual std::vector<VertexPtr> getOutConnections() const;
-    virtual std::vector<VertexPtr> getInConnections() const;
+    std::vector<VertexPtr> getOutConnections() const;
+    std::vector<VertexPtr> getInConnections() const;
 
-    virtual std::string getName() const;
-    virtual uint16_t getWireSize() const;
-    virtual uint16_t getLower() const;
-    virtual uint16_t getUpper() const;
+    uint16_t getWireSize() const;
+    std::string getWireName();
 
-    virtual std::string toVerilog();
+    uint16_t getLower() const;
+    uint16_t getUpper() const;
+
+    virtual std::string toVerilog() override;
 
   protected:
     OperationType operation;
@@ -98,22 +76,28 @@ class GraphVertex : public BasicType {
     uint16_t lower, upper;
 };
 
+// is used for shift operations and is another class
+// to save memory! More on 2 bytes :) and one function
+class GraphVertexShift : public GraphVertex {
+  public:
+    GraphVertexShift(uint16_t shift, uint16_t upper = 0, uint16_t lower = 0);
 
-// is used for shift operations
-// to save mamory! More on 2 bytes :) and one function
-class GraphVertexShift : GraphVertex {
-    GraphVertexShift(VertexType type, uint16_t lower = 0, uint16_t upper = 0,
-                     uint16_t shift)
-        : GraphVertex(type, OperationType::SliceOper, lower, upper) {
-        this->shift = shift;
-    }
+    uint16_t getShift() const { return shift; }
 
-    uint16_t getConstVal() const { return shift; }
-
-	std::string toVerilog();
+    std::string toVerilog();
 
   protected:
     uint16_t shift = 0;
+};
+
+class GraphVertexConst : public GraphVertex {
+  public:
+    GraphVertexConst(int constValue);
+
+    int getConstValue() const { return constValue; }
+
+  protected:
+    int constValue;
 };
 
 #endif

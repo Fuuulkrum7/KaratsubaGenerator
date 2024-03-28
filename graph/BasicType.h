@@ -2,20 +2,33 @@
 #define BASIC_TYPE
 
 #include <string>
+#include <cstdint>
 
 enum VertexType { Input, Output, Const, Operation, Graph };
 
 class BasicType {
   public:
-    virtual std::string toVerilog() = 0;
-    virtual VertexType getType() { return type; }
+    BasicType();
 
-    virtual std::string getName() = 0;
-    virtual u_int32_t getLevel() { return level; }
+    BasicType &operator=(const BasicType &other) = default;
+    BasicType &operator=(BasicType &&other) = default;
+    BasicType(const BasicType &other) = default;
+    BasicType(BasicType &&other) = default;
+
+    virtual ~BasicType(); 
+
+    virtual std::string toVerilog();
+    VertexType getType();
+
+    std::string getName() const;
+    uint32_t getLevel() const;
+
+    void setName(std::string name);
+    void setLevel(uint32_t level);
 
   protected:
     VertexType type;
-    u_int32_t level = 0;
+    uint32_t level = 0;
     std::string name;
 };
 
