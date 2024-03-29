@@ -13,7 +13,8 @@
 
 #define GraphPtr std::shared_ptr<OrientedGraph>
 
-class OrientedGraph : public BasicType {
+class OrientedGraph : public BasicType,
+                      public std::enable_shared_from_this<OrientedGraph> {
   public:
     OrientedGraph();
     OrientedGraph(std::string name);
@@ -25,15 +26,15 @@ class OrientedGraph : public BasicType {
 
     ~OrientedGraph() = default;
 
-    GraphPtr getParent() const;
-    void setParent(GraphPtr parent);
+    std::set<GraphPtr> getParents() const;
+    void addParent(GraphPtr parent);
 
     std::string toVerilog();
 
-    VertexPtr addInput(uint16_t upper = 0, uint16_t lower = 0);
-    VertexPtr addOutput(uint16_t upper = 0, uint16_t lower = 0);
-    VertexPtr addOperation(OperationType type, uint16_t upper = 0,
-                           uint16_t lower = 0, uint16_t shift = 0);
+    VertexPtr addInput(uint32_t upper = 0, uint32_t lower = 0);
+    VertexPtr addOutput(uint32_t upper = 0, uint32_t lower = 0);
+    VertexPtr addOperation(OperationType type, uint32_t upper = 0,
+                           uint32_t lower = 0, uint32_t shift = 0);
     VertexPtr addConst(int value);
     std::vector<VertexPtr> addSubgraph(GraphPtr subGraph,
                                        std::vector<VertexPtr> inputs);
@@ -49,11 +50,15 @@ class OrientedGraph : public BasicType {
     std::string curInstToString();
     static void setDefaultName(std::string name);
     static std::string getDefaultName();
+    void setCurrentParent(GraphPtr parent);
 
   protected:
     static std::string defaultName;
-    // in default is nullptr, when has a parent - is a subgraph
-    GraphPtr parentGraph = nullptr;
+    // is a subgraph when size is zero
+    std::set<GraphPtr> parentGraphs;
+    // as we can have multiple parents, we save 
+    // for toVerilog current parent graph
+    GraphPtr currentParentGraph;
 
     std::map<VertexType, std::vector<VertexPtr>> vertexes{
         { VertexType::Input, std::vector<VertexPtr>() },
@@ -68,19 +73,24 @@ class OrientedGraph : public BasicType {
 
     // each subgraph has one or more outputs. We save them,
     // depending on subgraph instance number
-    std::map<int, std::vector<VertexPtr>> subGraphsOutputsPtr;
+    std::map<GraphPtr, std::map<int, std::vector<VertexPtr>>>
+        subGraphsOutputsPtr;
+    std::vector<VertexPtr> allSubGraphsOutputs;
     // we have such pairs: number of subragh instances,
-    std::map<int, std::vector<VertexPtr>> subGraphsInputsPtr;
+    std::map<GraphPtr, std::map<int, std::vector<VertexPtr>>>
+        subGraphsInputsPtr;
 
-    static uint16_t count;
+    static uint32_t count;
 
     // also we need to now, was .v file for subgraph created, or not
     bool alreadyParsed = false;
     // We can add a subgraph multiple times
     // so we need to count instances
-    uint64_t graphInstanceCount = 0;
+    std::map<GraphPtr, uint64_t> graphInstanceCount;
     // we are counting to know, which inputs and outputs should we use now
-    uint64_t graphInstanceToVerilogCount = 0;
+    std::map<GraphPtr, uint64_t> graphInstanceToVerilogCount;
+
+    uint64_t parentCount = 0;
 
   private:
     std::string path = "";

@@ -1,10 +1,12 @@
+#include <filesystem>
+#include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 
 #include "OrientedGraph.h"
 
-uint16_t OrientedGraph::count = 0;
+uint32_t OrientedGraph::count = 0;
 std::string OrientedGraph::defaultName = "Submodule";
 
 OrientedGraph::OrientedGraph() {
@@ -24,23 +26,23 @@ OrientedGraph::OrientedGraph(std::string name) {
     }
 }
 
-GraphPtr OrientedGraph::getParent() const { return parentGraph; }
-
-void OrientedGraph::setDefaultName(std::string name) {
-    defaultName = name;
+std::set<GraphPtr> OrientedGraph::getParents() const {
+    return parentGraphs;
 }
 
-std::string OrientedGraph::getDefaultName() {
-    return defaultName;
-}
+void OrientedGraph::setDefaultName(std::string name) { defaultName = name; }
 
-void OrientedGraph::setParent(GraphPtr parent) { parentGraph = parent; }
+std::string OrientedGraph::getDefaultName() { return defaultName; }
+
+void OrientedGraph::addParent(GraphPtr parent) {
+    parentGraphs.insert(parent);
+}
 
 std::vector<VertexPtr> OrientedGraph::getVertexesByType(VertexType type) const {
     return vertexes.at(type);
 }
 
-VertexPtr OrientedGraph::addInput(uint16_t upper, uint16_t lower) {
+VertexPtr OrientedGraph::addInput(uint32_t upper, uint32_t lower) {
     VertexPtr newVertex(new GraphVertex(VertexType::Input,
                                         OperationType::Default, upper, lower));
     vertexes[VertexType::Input].push_back(newVertex);
@@ -48,7 +50,7 @@ VertexPtr OrientedGraph::addInput(uint16_t upper, uint16_t lower) {
     return newVertex;
 }
 
-VertexPtr OrientedGraph::addOutput(uint16_t upper, uint16_t lower) {
+VertexPtr OrientedGraph::addOutput(uint32_t upper, uint32_t lower) {
     VertexPtr newVertex(new GraphVertex(VertexType::Output,
                                         OperationType::Default, upper, lower));
     vertexes[VertexType::Output].push_back(newVertex);
@@ -67,6 +69,9 @@ std::vector<VertexPtr>
 OrientedGraph::addSubgraph(GraphPtr subGraph, std::vector<VertexPtr> inputs) {
     std::vector<VertexPtr> iGraph =
         subGraph->getVertexesByType(VertexType::Input);
+
+    subGraph->addParent(shared_from_this());
+
     if (inputs.size() != iGraph.size()) {
         throw std::invalid_argument(
             "Number of inputs should be same, as subgrap inputs number");
@@ -90,24 +95,31 @@ OrientedGraph::addSubgraph(GraphPtr subGraph, std::vector<VertexPtr> inputs) {
     }
 
     std::vector<VertexPtr> outputs;
-    outputs.reserve(subGraph->getVertexesByType(VertexType::Output).size());
+    // outputs.reserve(subGraph->getVertexesByType(VertexType::Output).size());
 
     for (auto out : subGraph->getVertexesByType(VertexType::Output)) {
         std::shared_ptr<GraphVertex> outVert =
             std::static_pointer_cast<GraphVertex>(out);
 
         VertexPtr newVertex(
-            new GraphVertex(VertexType::Output, OperationType::Default,
+            new GraphVertex(VertexType::Operation, OperationType::Buf,
                             outVert->getUpper(), outVert->getLower()));
 
         outputs.push_back(newVertex);
+        allSubGraphsOutputs.push_back(newVertex);
     }
 
+    if (!subGraph->graphInstanceCount.count(shared_from_this())) {
+        subGraph->graphInstanceCount[shared_from_this()] = 0;
+    }
+    uint64_t *val = &subGraph->graphInstanceCount[shared_from_this()];
     // here we save our inputs and outputs to instance number
-    subGraphsInputsPtr[graphInstanceCount] = inputs;
-    subGraphsOutputsPtr[graphInstanceCount] = outputs;
+    subGraph->subGraphsInputsPtr[shared_from_this()][*val] = inputs;
+    subGraph->subGraphsOutputsPtr[shared_from_this()][*val] = outputs;
+    // subGraphsInputsPtr[graphInstanceCount] = inputs;
+    // subGraphsOutputsPtr[graphInstanceCount] = outputs;
 
-    ++graphInstanceCount;
+    ++(*val);
 
     // here we use subgraph like an instance of BasicType,
     // and we call it's toVerilog, having in multiple instance
@@ -119,8 +131,8 @@ OrientedGraph::addSubgraph(GraphPtr subGraph, std::vector<VertexPtr> inputs) {
     return outputs;
 }
 
-VertexPtr OrientedGraph::addOperation(OperationType type, uint16_t upper,
-                                      uint16_t lower, uint16_t shift) {
+VertexPtr OrientedGraph::addOperation(OperationType type, uint32_t upper,
+                                      uint32_t lower, uint32_t shift) {
     VertexPtr newVertex;
 
     if (type == OperationType::RShift || type == OperationType::LShift) {
@@ -156,38 +168,52 @@ void OrientedGraph::addEdges(std::vector<VertexPtr> from, VertexPtr to) {
 
 void OrientedGraph::setWritePath(std::string path) {
     this->path = path;
+
+    // we will stop, when subgraph would not have any subgraphs
+    for (auto i : subGraphs) {
+        i->setWritePath(path);
+    }
+}
+
+void OrientedGraph::setCurrentParent(GraphPtr parent) {
+    currentParentGraph = parent;
 }
 
 // for parsing graph to module instance
 std::string OrientedGraph::curInstToString() {
-    if (graphInstanceToVerilogCount == graphInstanceCount) {
+    uint64_t *verilogCount = &graphInstanceToVerilogCount[currentParentGraph];
+    uint64_t *allCount = &graphInstanceCount[currentParentGraph];
+
+    if (*verilogCount == *allCount) {
         throw std::out_of_range(
             "Incorrect curInstToString call. All modules (" +
-            std::to_string(graphInstanceCount) + ") were already parsed");
+            std::to_string(*allCount) + ") were already parsed");
     }
+
     std::string verilogTab = "  ";
     // module_name module_name_inst_1 (
     std::string module_ver = verilogTab + name + " " + name + "_inst_" +
-                             std::to_string(graphInstanceToVerilogCount) +
-                             " (\n";
-    for (auto inp : subGraphsInputsPtr[graphInstanceToVerilogCount]) {
+                             std::to_string(*verilogCount) + " (\n";
+    for (auto inp : subGraphsInputsPtr[currentParentGraph][*verilogCount]) {
         module_ver += verilogTab + verilogTab;
         module_ver += inp->getName() + ",\n";
     }
 
     for (int i = 0;
-         i < subGraphsOutputsPtr[graphInstanceToVerilogCount].size() - 1; ++i) {
-        auto out = subGraphsOutputsPtr[graphInstanceToVerilogCount][i];
+         i < subGraphsOutputsPtr[currentParentGraph][*verilogCount].size() - 1; ++i) {
+        VertexPtr out = subGraphsOutputsPtr[currentParentGraph][*verilogCount][i];
         module_ver += verilogTab + verilogTab;
         module_ver += out->getName() + ",\n";
     }
+
     module_ver += verilogTab + verilogTab;
     module_ver +=
-        subGraphsOutputsPtr[graphInstanceToVerilogCount].back()->getName() +
+        subGraphsOutputsPtr[currentParentGraph][*verilogCount].back()->getName() +
         "\n";
     module_ver += verilogTab + "); \n";
 
-    ++graphInstanceToVerilogCount;
+    ++(*verilogCount);
+
     return module_ver;
 }
 
@@ -195,13 +221,15 @@ std::string OrientedGraph::toVerilog() {
     std::string verilogTab = "  ";
     // if it's a subGraph and it was already parsed to .v file
     // we can just return a new instance of module
-    if (!alreadyParsed && parentGraph.get() != nullptr) {
+    if (alreadyParsed && parentGraphs.size()) {
         return curInstToString();
     }
     std::string curPath = path;
-    if (parentGraph.get() != nullptr) {
-        curPath += "/submodules";
+
+    if (parentGraphs.size()) {
+        curPath += "submodules";
     }
+    std::filesystem::create_directories(curPath);
 
     std::ofstream outFile(curPath + "/" + name + ".v");
     outFile << "module " << name << "(\n" << verilogTab;
@@ -257,17 +285,14 @@ std::string OrientedGraph::toVerilog() {
 
     // writing wires for modules
     // i thought it would look better
-    for (auto [key, subOutputs] : subGraphsOutputsPtr) {
-        for (auto subOutput : subOutputs) {
-            auto outVert = std::static_pointer_cast<GraphVertex>(subOutput);
+    for (auto subOutput : allSubGraphsOutputs) {
+        auto outVert = std::static_pointer_cast<GraphVertex>(subOutput);
 
-            if (!subGraphOutputsByWireSize.count(outVert->getWireSize())) {
-                subGraphOutputsByWireSize[outVert->getWireSize()] = {};
-            }
-
-            subGraphOutputsByWireSize[outVert->getWireSize()].push_back(
-                outVert);
+        if (!subGraphOutputsByWireSize.count(outVert->getWireSize())) {
+            subGraphOutputsByWireSize[outVert->getWireSize()] = {};
         }
+
+        subGraphOutputsByWireSize[outVert->getWireSize()].push_back(outVert);
     }
 
     // parsing inputs, outputs and wires for subgraphs
@@ -300,6 +325,8 @@ std::string OrientedGraph::toVerilog() {
     }
     // and all modules
     for (auto sub : vertexes[VertexType::Graph]) {
+        auto subPtr = std::static_pointer_cast<OrientedGraph>(sub);
+        subPtr->setCurrentParent(shared_from_this());
         outFile << sub->toVerilog();
     }
 
@@ -321,7 +348,7 @@ std::string OrientedGraph::toVerilog() {
 
     alreadyParsed = true;
 
-    if (parentGraph) {
+    if (parentGraphs.size()) {
         return curInstToString();
     }
 

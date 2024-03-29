@@ -39,7 +39,7 @@ class GraphVertex : public BasicType {
     // is it [a:b] vertex, values b and a
     GraphVertex(VertexType type,
                 OperationType operation = OperationType::Default,
-                uint16_t upper = 0, uint16_t lower = 0, std::string name = "");
+                uint32_t upper = 0, uint32_t lower = 0, std::string name = "");
 
     GraphVertex &operator=(const GraphVertex &other) = default;
     GraphVertex &operator=(GraphVertex &&other) = default;
@@ -56,11 +56,11 @@ class GraphVertex : public BasicType {
     std::vector<VertexPtr> getOutConnections() const;
     std::vector<VertexPtr> getInConnections() const;
 
-    uint16_t getWireSize() const;
+    uint32_t getWireSize() const;
     std::string getWireName();
 
-    uint16_t getLower() const;
-    uint16_t getUpper() const;
+    uint32_t getLower() const;
+    uint32_t getUpper() const;
 
     virtual std::string toVerilog() override;
 
@@ -75,22 +75,22 @@ class GraphVertex : public BasicType {
     static uint_fast64_t count;
 
     bool multi = false;
-    uint16_t lower, upper;
+    uint32_t lower, upper;
 };
 
 // is used for shift operations and is another class
 // to save memory! More on 2 bytes :) and one function
 class GraphVertexShift : public GraphVertex {
   public:
-    GraphVertexShift(OperationType type, uint16_t shift, uint16_t upper = 0,
-                     uint16_t lower = 0);
+    GraphVertexShift(OperationType type, uint32_t shift, uint32_t upper = 0,
+                     uint32_t lower = 0);
 
-    uint16_t getShift() const { return shift; }
+    uint32_t getShift() const { return shift; }
 
     std::string toVerilog();
 
   protected:
-    uint16_t shift = 0;
+    uint32_t shift = 0;
 };
 
 class GraphVertexConst : public GraphVertex {

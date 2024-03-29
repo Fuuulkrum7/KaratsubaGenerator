@@ -1,9 +1,11 @@
+#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <filesystem>
 
 #include <generator/KaratsubaGen.h>
+
+using namespace std::chrono;
 
 int get_int() {
     int x = 0;
@@ -48,10 +50,16 @@ int main(int argc, char *args[]) {
 
     KaratsubaGen gen(bitDepth);
 
+    auto start = high_resolution_clock::now();
+
     GraphPtr graph = gen.startGeneration();
+    
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+    std::clog << "Time taken: " << duration.count() << " microseconds"
+              << std::endl;
 
     std::string path = "dataset/";
-    std::filesystem::create_directories(path);
 
     graph->setWritePath(path);
 

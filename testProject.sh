@@ -5,5 +5,5 @@ if [ ! -d "dataset" ]; then
 fi
 cd tests
 
-iverilog -o sth testbench.v ../dataset/Karatsuba_0.v
+iverilog -o sth testbench.v ../dataset/*.v ../dataset/submodules/*.v
 vvp sth > result.txt

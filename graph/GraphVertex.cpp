@@ -49,7 +49,7 @@ std::string VertexUtils::vertexTypeToString(VertexType type) {
 uint_fast64_t GraphVertex::count = 0;
 
 GraphVertex::GraphVertex(VertexType type, OperationType operation,
-                         uint16_t upper, uint16_t lower, std::string name) {
+                         uint32_t upper, uint32_t lower, std::string name) {
     if (lower > upper) {
         throw std::invalid_argument("Slice should have upper border greater"
                                     " than lower");
@@ -105,16 +105,16 @@ std::vector<VertexPtr> GraphVertex::getInConnections() const {
     return inConnection;
 }
 
-uint16_t GraphVertex::getWireSize() const { return upper - lower; }
+uint32_t GraphVertex::getWireSize() const { return upper - lower; }
 
 std::string GraphVertex::getWireName() {
     return "wire " +
            (getWireSize() ? "[" + std::to_string(getWireSize()) + " : 0]" : "");
 }
 
-uint16_t GraphVertex::getLower() const { return lower; }
+uint32_t GraphVertex::getLower() const { return lower; }
 
-uint16_t GraphVertex::getUpper() const { return upper; }
+uint32_t GraphVertex::getUpper() const { return upper; }
 
 std::string GraphVertex::toVerilog() {
     if (type == VertexType::Output) {
@@ -171,8 +171,8 @@ std::string GraphVertexConst::toVerilog() {
     return "localparam " + name + +" = " + std::to_string(constValue) + ";";
 }
 
-GraphVertexShift::GraphVertexShift(OperationType type, uint16_t shift,
-                                   uint16_t upper, uint16_t lower)
+GraphVertexShift::GraphVertexShift(OperationType type, uint32_t shift,
+                                   uint32_t upper, uint32_t lower)
     : GraphVertex(VertexType::Operation, type, upper, lower) {
     if (type != OperationType::RShift && type != OperationType::LShift) {
         throw std::invalid_argument(

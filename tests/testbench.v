@@ -1,7 +1,7 @@
-`timescale 1 ns / 100 ps
+`timescale 1 ns / 1 ps
 
 module testbench_d;
-	localparam  N = 2;
+	localparam  N = 10;
     reg  [ N - 1 : 0 ] a, b;
     wire [ ((N << 1) - 1) : 0] res_kar;
 	reg  [ ((N << 1) - 1) : 0] res_fact;
@@ -22,7 +22,7 @@ module testbench_d;
 					b = j[N - 1:0];
 
 					res_fact <= a * b;
-					# 100;   
+					# 20;   
 					if(res_fact !== res_kar) begin
 						$error("BAD kar2");
 						$stop();
