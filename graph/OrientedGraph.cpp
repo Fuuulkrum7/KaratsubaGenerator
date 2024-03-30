@@ -7,6 +7,7 @@
 #include "OrientedGraph.h"
 
 uint32_t OrientedGraph::count = 0;
+
 std::string OrientedGraph::defaultName = "Submodule";
 
 OrientedGraph::OrientedGraph() {
@@ -26,17 +27,13 @@ OrientedGraph::OrientedGraph(std::string name) {
     }
 }
 
-std::set<GraphPtr> OrientedGraph::getParents() const {
-    return parentGraphs;
-}
+std::set<GraphPtr> OrientedGraph::getParents() const { return parentGraphs; }
 
 void OrientedGraph::setDefaultName(std::string name) { defaultName = name; }
 
 std::string OrientedGraph::getDefaultName() { return defaultName; }
 
-void OrientedGraph::addParent(GraphPtr parent) {
-    parentGraphs.insert(parent);
-}
+void OrientedGraph::addParent(GraphPtr parent) { parentGraphs.insert(parent); }
 
 std::vector<VertexPtr> OrientedGraph::getVertexesByType(VertexType type) const {
     return vertexes.at(type);
@@ -167,11 +164,13 @@ void OrientedGraph::addEdges(std::vector<VertexPtr> from, VertexPtr to) {
 }
 
 void OrientedGraph::setWritePath(std::string path) {
-    this->path = path;
+    if (this->path != path) {
+        this->path = path;
 
-    // we will stop, when subgraph would not have any subgraphs
-    for (auto i : subGraphs) {
-        i->setWritePath(path);
+        // we will stop, when subgraph would not have any subgraphs
+        for (auto i : subGraphs) {
+            i->setWritePath(path);
+        }
     }
 }
 
@@ -200,16 +199,19 @@ std::string OrientedGraph::curInstToString() {
     }
 
     for (int i = 0;
-         i < subGraphsOutputsPtr[currentParentGraph][*verilogCount].size() - 1; ++i) {
-        VertexPtr out = subGraphsOutputsPtr[currentParentGraph][*verilogCount][i];
+         i < subGraphsOutputsPtr[currentParentGraph][*verilogCount].size() - 1;
+         ++i) {
+        VertexPtr out =
+            subGraphsOutputsPtr[currentParentGraph][*verilogCount][i];
         module_ver += verilogTab + verilogTab;
         module_ver += out->getName() + ",\n";
     }
 
     module_ver += verilogTab + verilogTab;
-    module_ver +=
-        subGraphsOutputsPtr[currentParentGraph][*verilogCount].back()->getName() +
-        "\n";
+    module_ver += subGraphsOutputsPtr[currentParentGraph][*verilogCount]
+                      .back()
+                      ->getName() +
+                  "\n";
     module_ver += verilogTab + "); \n";
 
     ++(*verilogCount);
@@ -225,6 +227,9 @@ std::string OrientedGraph::toVerilog() {
         return curInstToString();
     }
     std::string curPath = path;
+    if (curPath.back() != '/') {
+        curPath += "/";
+    }
 
     if (parentGraphs.size()) {
         curPath += "submodules";

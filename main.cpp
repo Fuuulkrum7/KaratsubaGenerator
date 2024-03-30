@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <filesystem>
 
 #include <generator/KaratsubaGen.h>
 
@@ -56,14 +57,22 @@ int main(int argc, char *args[]) {
     
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(stop - start);
-    std::clog << "Time taken: " << duration.count() << " microseconds"
+    std::clog << "Time Gen taken: " << duration.count() << " microseconds"
               << std::endl;
 
     std::string path = "dataset/";
+    std::filesystem::remove_all(path);
 
     graph->setWritePath(path);
 
+    start = high_resolution_clock::now();
+
     graph->toVerilog();
+
+    stop = high_resolution_clock::now();
+    duration = duration_cast<microseconds>(stop - start);
+    std::clog << "Time write taken: " << duration.count() << " microseconds"
+              << std::endl;
 
     return 0;
 }
