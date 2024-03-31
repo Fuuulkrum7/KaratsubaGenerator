@@ -1,7 +1,7 @@
 `timescale 1 ns / 1 ps
 
 module testbench_d;
-	localparam  N = 1000;
+    localparam N = 15;
     reg  [ N - 1 : 0 ] a, b;
     wire [ ((N << 1) - 1) : 0] res_kar;
 	reg  [ ((N << 1) - 1) : 0] res_fact;
@@ -21,7 +21,7 @@ module testbench_d;
 			begin
 				for (j = 0; j < 1 << N; j = j + 1)
 				begin
-					// protection for stupid mistakes
+					// protection from stupid mistakes
 					a = i[N - 1:0];
 					b = j[N - 1:0];
 
