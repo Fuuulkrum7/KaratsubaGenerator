@@ -1,7 +1,7 @@
 `timescale 1 ns / 1 ps
 
 module testbench_d;
-    localparam N = 15;
+    localparam N = 10;
     reg  [ N - 1 : 0 ] a, b;
     wire [ ((N << 1) - 1) : 0] res_kar;
 	reg  [ ((N << 1) - 1) : 0] res_fact;
