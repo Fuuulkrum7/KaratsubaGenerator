@@ -57,7 +57,7 @@ class GraphVertex : public BasicType {
     std::vector<VertexPtr> getInConnections() const;
 
     uint32_t getWireSize() const;
-    std::string getWireName();
+    std::string getInstance();
 
     uint32_t getLower() const;
     uint32_t getUpper() const;

@@ -6,7 +6,7 @@ module testbench_d;
     wire [ ((N << 1) - 1) : 0] res_kar;
 	reg  [ ((N << 1) - 1) : 0] res_fact;
 
-    Karatsuba_0 karatsuba(a, b, res_kar);
+    Karatsuba_0 karatsuba(.input_0(a), .input_1(b), .output_2(res_kar));
 
 	integer i, j;
 	reg [N - 1:0] val1, val2;

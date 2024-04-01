@@ -75,7 +75,7 @@ std::string GraphVertex::getTypeName() const {
     case VertexType::Input:
         return "input";
     case VertexType::Output:
-        return "ouput";
+        return "output";
     case VertexType::Const:
         return "const";
     case VertexType::Operation:
@@ -107,9 +107,11 @@ std::vector<VertexPtr> GraphVertex::getInConnections() const {
 
 uint32_t GraphVertex::getWireSize() const { return upper - lower; }
 
-std::string GraphVertex::getWireName() {
+std::string GraphVertex::getInstance() {
     return "wire " +
-           (getWireSize() ? "[" + std::to_string(getWireSize()) + " : 0]" : "");
+           (getWireSize() ? "[" + std::to_string(getWireSize()) + " : 0] "
+                          : " ") +
+           name + ";";
 }
 
 uint32_t GraphVertex::getLower() const { return lower; }
@@ -128,7 +130,7 @@ std::string GraphVertex::toVerilog() {
         return "";
     }
 
-    std::string basic = getWireName() + " " + name + " = ";
+    std::string basic = "assign " + name + " = ";
 
     if (operation == OperationType::SliceOper) {
         // we have only one operation in this case
@@ -183,7 +185,7 @@ GraphVertexShift::GraphVertexShift(OperationType type, uint32_t shift,
 
 // Shift toVerilog
 std::string GraphVertexShift::toVerilog() {
-    std::string basic = getWireName() + " " + name + " = ";
+    std::string basic = "assign " + name + " = ";
     std::string oper = VertexUtils::operationToString(operation);
 
     basic += inConnection.back()->getName() + " " + oper + " " +

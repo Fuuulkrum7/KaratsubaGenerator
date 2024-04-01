@@ -46,8 +46,9 @@ class OrientedGraph : public BasicType,
     std::vector<VertexPtr> getVertexesByType(VertexType type) const;
 
     void setWritePath(std::string path);
+    uint32_t getWireSize() const;
 
-    std::string curInstToString();
+    std::string getInstance();
     static void setDefaultName(std::string name);
     static std::string getDefaultName();
     void setCurrentParent(GraphPtr parent);
