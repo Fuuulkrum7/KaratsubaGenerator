@@ -36,13 +36,13 @@ std::string OrientedGraph::getDefaultName() { return defaultName; }
 void OrientedGraph::addParent(GraphPtr parent) { parentGraphs.insert(parent); }
 
 std::vector<VertexPtr> OrientedGraph::getVertexesByType(VertexType type) const {
-    return vertexes.at(type);
+    return vertices.at(type);
 }
 
 VertexPtr OrientedGraph::addInput(uint32_t upper, uint32_t lower) {
     VertexPtr newVertex(new GraphVertex(VertexType::Input,
                                         OperationType::Default, upper, lower));
-    vertexes[VertexType::Input].push_back(newVertex);
+    vertices[VertexType::Input].push_back(newVertex);
 
     return newVertex;
 }
@@ -50,14 +50,14 @@ VertexPtr OrientedGraph::addInput(uint32_t upper, uint32_t lower) {
 VertexPtr OrientedGraph::addOutput(uint32_t upper, uint32_t lower) {
     VertexPtr newVertex(new GraphVertex(VertexType::Output,
                                         OperationType::Default, upper, lower));
-    vertexes[VertexType::Output].push_back(newVertex);
+    vertices[VertexType::Output].push_back(newVertex);
 
     return newVertex;
 }
 
 VertexPtr OrientedGraph::addConst(int value) {
     VertexPtr newVertex(new GraphVertexConst(value));
-    vertexes[VertexType::Input].push_back(newVertex);
+    vertices[VertexType::Input].push_back(newVertex);
 
     return newVertex;
 }
@@ -120,7 +120,7 @@ OrientedGraph::addSubgraph(GraphPtr subGraph, std::vector<VertexPtr> inputs) {
     // and we call it's toVerilog, having in multiple instance
     // of one subGraph, so we can have many times "moduleName name (inp, out);"
     // having different names of module, inputs and outputs
-    vertexes[VertexType::Graph].push_back(subGraph);
+    vertices[VertexType::Graph].push_back(subGraph);
     subGraphs.insert(subGraph);
 
     return outputs;
@@ -137,7 +137,7 @@ VertexPtr OrientedGraph::addOperation(OperationType type, uint32_t upper,
             new GraphVertex(VertexType::Operation, type, upper, lower));
     }
 
-    vertexes[VertexType::Operation].push_back(newVertex);
+    vertices[VertexType::Operation].push_back(newVertex);
 
     return newVertex;
 }
@@ -173,8 +173,8 @@ void OrientedGraph::setWritePath(std::string path) {
 }
 
 uint32_t OrientedGraph::getWireSize() const {
-    return vertexes.at(VertexType::Input).size() +
-           vertexes.at(VertexType::Output).size();
+    return vertices.at(VertexType::Input).size() +
+           vertices.at(VertexType::Output).size();
 }
 
 void OrientedGraph::setCurrentParent(GraphPtr parent) {
@@ -196,24 +196,24 @@ std::string OrientedGraph::getInstance() {
     // module_name module_name_inst_1 (
     std::string module_ver = verilogTab + name + " " + name + "_inst_" +
                              std::to_string(*verilogCount) + " (\n";
-    for (int i = 0; i < vertexes[VertexType::Input].size(); ++i) {
+    for (int i = 0; i < vertices[VertexType::Input].size(); ++i) {
         auto inp = subGraphsInputsPtr[currentParentGraph][*verilogCount][i];
-        std::string inp_name = vertexes[VertexType::Input][i]->getName();
+        std::string inp_name = vertices[VertexType::Input][i]->getName();
 
         module_ver += verilogTab + verilogTab + "." + inp_name + "( ";
         module_ver += inp->getName() + " ),\n";
     }
 
-    for (int i = 0; i < vertexes[VertexType::Output].size() - 1; ++i) {
+    for (int i = 0; i < vertices[VertexType::Output].size() - 1; ++i) {
         VertexPtr out =
             subGraphsOutputsPtr[currentParentGraph][*verilogCount][i];
-        std::string out_name = vertexes[VertexType::Output][i]->getName();
+        std::string out_name = vertices[VertexType::Output][i]->getName();
 
         module_ver += verilogTab + verilogTab + "." + out_name + "( ";
         module_ver += out->getName() + " ),\n";
     }
 
-    std::string out_name = vertexes[VertexType::Output].back()->getName();
+    std::string out_name = vertices[VertexType::Output].back()->getName();
 
     module_ver += verilogTab + verilogTab + "." + out_name + "( ";
     module_ver += subGraphsOutputsPtr[currentParentGraph][*verilogCount]
@@ -252,7 +252,7 @@ std::string OrientedGraph::toVerilog() {
     std::map<int, std::vector<VertexPtr>> subGraphOutputsByWireSize;
 
     // here we are parsing inputs by their wire size
-    for (auto inp : vertexes[VertexType::Input]) {
+    for (auto inp : vertices[VertexType::Input]) {
         if (!inputByWireSize.count(inp->getWireSize())) {
             inputByWireSize[inp->getWireSize()] = {};
         }
@@ -265,7 +265,7 @@ std::string OrientedGraph::toVerilog() {
     outFile << '\n' << verilogTab;
 
     // and outputs
-    for (auto outVert : vertexes[VertexType::Output]) {
+    for (auto outVert : vertices[VertexType::Output]) {
         if (!outputByWireSize.count(outVert->getWireSize())) {
             outputByWireSize[outVert->getWireSize()] = {};
         }
@@ -273,7 +273,7 @@ std::string OrientedGraph::toVerilog() {
         outputByWireSize[outVert->getWireSize()].push_back(outVert);
 
         outFile << outVert->getName()
-                << ((outVert == vertexes[VertexType::Output].back()) ? "\n"
+                << ((outVert == vertices[VertexType::Output].back()) ? "\n"
                                                                      : ", ");
     }
     outFile << ");\n" << verilogTab;
@@ -305,36 +305,36 @@ std::string OrientedGraph::toVerilog() {
         }
     }
 
-    if (vertexes[VertexType::Const].size()) {
+    if (vertices[VertexType::Const].size()) {
         outFile << "\n";
     }
     // writing consts
-    for (auto oper : vertexes[VertexType::Const]) {
+    for (auto oper : vertices[VertexType::Const]) {
         outFile << verilogTab << oper->toVerilog() << "\n";
     }
 
-    if (vertexes[VertexType::Graph].size()) {
+    if (vertices[VertexType::Graph].size()) {
         outFile << "\n";
     }
     // and all modules
-    for (auto sub : vertexes[VertexType::Graph]) {
+    for (auto sub : vertices[VertexType::Graph]) {
         auto subPtr = std::static_pointer_cast<OrientedGraph>(sub);
         subPtr->setCurrentParent(shared_from_this());
         outFile << sub->toVerilog();
     }
 
-    if (vertexes[VertexType::Operation].size()) {
+    if (vertices[VertexType::Operation].size()) {
         outFile << "\n";
     }
     // and all operations
-    for (auto oper : vertexes[VertexType::Operation]) {
+    for (auto oper : vertices[VertexType::Operation]) {
         outFile << verilogTab << oper->getInstance() << "\n";
         outFile << verilogTab << oper->toVerilog() << "\n";
     }
 
     outFile << "\n";
     // and all outputs
-    for (auto oper : vertexes[VertexType::Output]) {
+    for (auto oper : vertices[VertexType::Output]) {
         outFile << verilogTab << oper->toVerilog() << "\n";
     }
 

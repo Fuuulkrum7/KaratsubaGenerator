@@ -61,7 +61,7 @@ class OrientedGraph : public BasicType,
     // for toVerilog current parent graph
     GraphPtr currentParentGraph;
 
-    std::map<VertexType, std::vector<VertexPtr>> vertexes{
+    std::map<VertexType, std::vector<VertexPtr>> vertices{
         { VertexType::Input, std::vector<VertexPtr>() },
         { VertexType::Output, std::vector<VertexPtr>() },
         { VertexType::Const, std::vector<VertexPtr>() },
