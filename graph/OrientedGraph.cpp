@@ -27,6 +27,36 @@ OrientedGraph::OrientedGraph(std::string name) {
     }
 }
 
+OrientedGraph::OrientedGraph(OrientedGraph *other) {
+    type = other->type;
+    level = other->level;
+    name = other->name;
+
+    parentGraphs = other->parentGraphs;
+    currentParentGraph = other->currentParentGraph;
+    vertices = other->vertices;
+
+    subGraphs = other->subGraphs;
+    subGraphsOutputsPtr = other->subGraphsOutputsPtr;
+    allSubGraphsOutputs = other->allSubGraphsOutputs;
+    subGraphsInputsPtr = other->subGraphsInputsPtr;
+
+    alreadyParsed = other->alreadyParsed;
+    graphInstanceCount = other->graphInstanceCount;
+    graphInstanceToVerilogCount = other->graphInstanceToVerilogCount;
+
+    parentCount = other->parentCount;
+    path = other->path;
+}
+
+void OrientedGraph::setCountGraphs(uint32_t n) {
+    count = n;
+}
+
+uint32_t OrientedGraph::getCountGraphs() {
+    return count;
+}
+
 std::set<GraphPtr> OrientedGraph::getParents() const { return parentGraphs; }
 
 void OrientedGraph::setDefaultName(std::string name) { defaultName = name; }
@@ -68,6 +98,7 @@ OrientedGraph::addSubgraph(GraphPtr subGraph, std::vector<VertexPtr> inputs) {
         subGraph->getVertexesByType(VertexType::Input);
 
     subGraph->addParent(shared_from_this());
+    subGraph->setCurrentParent(shared_from_this());
 
     if (inputs.size() != iGraph.size()) {
         throw std::invalid_argument(

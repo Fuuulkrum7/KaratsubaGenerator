@@ -18,6 +18,7 @@ class OrientedGraph : public BasicType,
   public:
     OrientedGraph();
     OrientedGraph(std::string name);
+    OrientedGraph(OrientedGraph *other);
 
     OrientedGraph &operator=(const OrientedGraph &other) = default;
     OrientedGraph &operator=(OrientedGraph &&other) = default;
@@ -53,11 +54,14 @@ class OrientedGraph : public BasicType,
     static std::string getDefaultName();
     void setCurrentParent(GraphPtr parent);
 
+    static void setCountGraphs(uint32_t n);
+    static uint32_t getCountGraphs();
+
   protected:
     static std::string defaultName;
     // is a subgraph when size is zero
     std::set<GraphPtr> parentGraphs;
-    // as we can have multiple parents, we save 
+    // as we can have multiple parents, we save
     // for toVerilog current parent graph
     GraphPtr currentParentGraph;
 

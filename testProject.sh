@@ -9,6 +9,8 @@ chmod a+x buildProject.sh
 sh ./buildProject.sh
 ./build/karatsuba $val
 
+./build/tests/KaratsubaGenTests
+
 cd tests
 
 python3 updateTestbench.py $val

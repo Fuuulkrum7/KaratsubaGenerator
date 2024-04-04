@@ -18,6 +18,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_INIT} -std=c++17 -fPIC")
 add_subdirectory(graph)
 add_subdirectory(generator)
 
+add_subdirectory(tests)
+
 set(
     PROJECT_LIBS
 

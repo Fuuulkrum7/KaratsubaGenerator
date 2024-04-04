@@ -2,7 +2,7 @@
 
 BasicType::BasicType() {}
 
-BasicType::~BasicType(){};
+BasicType::~BasicType() {};
 
 std::string BasicType::toVerilog() { return ""; };
 VertexType BasicType::getType() { return type; }

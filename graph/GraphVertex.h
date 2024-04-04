@@ -40,11 +40,16 @@ class GraphVertex : public BasicType {
     GraphVertex(VertexType type,
                 OperationType operation = OperationType::Default,
                 uint32_t upper = 0, uint32_t lower = 0, std::string name = "");
+    
+    GraphVertex(GraphVertex *other);
 
     GraphVertex &operator=(const GraphVertex &other) = default;
     GraphVertex &operator=(GraphVertex &&other) = default;
     GraphVertex(const GraphVertex &other) = default;
     GraphVertex(GraphVertex &&other) = default;
+
+    static uint32_t getCountVertex();
+    static void setCountVertex(uint32_t n);
 
     std::string getTypeName() const;
 
@@ -52,6 +57,9 @@ class GraphVertex : public BasicType {
     void addChild(VertexPtr vertex);
 
     std::string getName() const;
+
+    void setOperation(OperationType operation);
+    OperationType getOperation() const;
 
     std::vector<VertexPtr> getOutConnections() const;
     std::vector<VertexPtr> getInConnections() const;
@@ -84,6 +92,7 @@ class GraphVertexShift : public GraphVertex {
   public:
     GraphVertexShift(OperationType type, uint32_t shift, uint32_t upper = 0,
                      uint32_t lower = 0);
+    GraphVertexShift(GraphVertexShift *other);
 
     uint32_t getShift() const { return shift; }
 
@@ -96,6 +105,7 @@ class GraphVertexShift : public GraphVertex {
 class GraphVertexConst : public GraphVertex {
   public:
     GraphVertexConst(int constValue);
+    GraphVertexConst(GraphVertexConst *other);
 
     int getConstValue() const { return constValue; }
 

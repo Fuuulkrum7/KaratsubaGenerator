@@ -70,6 +70,19 @@ GraphVertex::GraphVertex(VertexType type, OperationType operation,
     this->upper = upper;
 }
 
+GraphVertex::GraphVertex(GraphVertex *other) {
+    operation = other->operation;
+    inConnection = other->inConnection;
+    outConnection = other->outConnection;
+    name = other->name;
+    multi = other->multi;
+    lower = other->lower;
+    upper = other->upper;
+
+    type = other->type;
+    level = other->level;
+}
+
 std::string GraphVertex::getTypeName() const {
     switch (type) {
     case VertexType::Input:
@@ -80,6 +93,8 @@ std::string GraphVertex::getTypeName() const {
         return "const";
     case VertexType::Operation:
         return "g";
+    case VertexType::Graph:
+        return "subgraph";
     default:
         return "default";
     }
@@ -88,6 +103,12 @@ std::string GraphVertex::getTypeName() const {
 }
 
 std::string GraphVertex::getName() const { return name; }
+
+void GraphVertex::setOperation(OperationType operation) {
+    this->operation = operation;
+}
+
+OperationType GraphVertex::getOperation() const { return operation; }
 
 void GraphVertex::addParent(VertexPtr vertex) {
     inConnection.push_back(vertex);
@@ -107,10 +128,14 @@ std::vector<VertexPtr> GraphVertex::getInConnections() const {
 
 uint32_t GraphVertex::getWireSize() const { return upper - lower; }
 
+void GraphVertex::setCountVertex(uint32_t n) { count = n; }
+
+uint32_t GraphVertex::getCountVertex() { return count; }
+
 std::string GraphVertex::getInstance() {
     return "wire " +
            (getWireSize() ? "[" + std::to_string(getWireSize()) + " : 0] "
-                          : " ") +
+                          : "") +
            name + ";";
 }
 
@@ -151,15 +176,24 @@ std::string GraphVertex::toVerilog() {
     }
 
     if (operation == OperationType::Not || operation == OperationType::Buf) {
-        basic += oper + inConnection.back()->getName();
+        basic += oper + inConnection.back()->getName() + ";";
 
         return basic;
+    }
+
+    std::string end = "";
+
+    if (operation == OperationType::Nand || operation == OperationType::Nor ||
+        operation == OperationType::Xnor) {
+        basic += "~ ( ";
+
+        end = " )";
     }
 
     for (int i = 0; i < inConnection.size() - 1; ++i) {
         basic += inConnection[i]->getName() + " " + oper + " ";
     }
-    basic += inConnection.back()->getName() + ";";
+    basic += inConnection.back()->getName() + end + ";";
 
     return basic;
 }
@@ -173,6 +207,13 @@ std::string GraphVertexConst::toVerilog() {
     return "localparam " + name + +" = " + std::to_string(constValue) + ";";
 }
 
+GraphVertexConst::GraphVertexConst(GraphVertexConst *other)
+    : GraphVertex(other) {
+    constValue = other->constValue;
+    level = other->level;
+    name = other->name;
+}
+
 GraphVertexShift::GraphVertexShift(OperationType type, uint32_t shift,
                                    uint32_t upper, uint32_t lower)
     : GraphVertex(VertexType::Operation, type, upper, lower) {
@@ -181,6 +222,11 @@ GraphVertexShift::GraphVertexShift(OperationType type, uint32_t shift,
             "GraphVertexShift type: shift should be shift!");
     }
     this->shift = shift;
+}
+
+GraphVertexShift::GraphVertexShift(GraphVertexShift *other)
+    : GraphVertex(other) {
+    shift = other->shift;
 }
 
 // Shift toVerilog
