@@ -32,10 +32,10 @@ class OrientedGraph : public BasicType,
 
     std::string toVerilog();
 
-    VertexPtr addInput(uint32_t upper = 0, uint32_t lower = 0);
-    VertexPtr addOutput(uint32_t upper = 0, uint32_t lower = 0);
-    VertexPtr addOperation(OperationType type, uint32_t upper = 0,
-                           uint32_t lower = 0, uint32_t shift = 0);
+    VertexPtr addInput(uint64_t upper = 0, uint64_t lower = 0);
+    VertexPtr addOutput(uint64_t upper = 0, uint64_t lower = 0);
+    VertexPtr addOperation(OperationType type, uint64_t upper = 0,
+                           uint64_t lower = 0, uint64_t shift = 0);
     VertexPtr addConst(int value);
     std::vector<VertexPtr> addSubgraph(GraphPtr subGraph,
                                        std::vector<VertexPtr> inputs);
@@ -47,15 +47,17 @@ class OrientedGraph : public BasicType,
     std::vector<VertexPtr> getVertexesByType(VertexType type) const;
 
     void setWritePath(std::string path);
-    uint32_t getWireSize() const;
+    uint64_t getWireSize() const;
 
     std::string getInstance();
     static void setDefaultName(std::string name);
     static std::string getDefaultName();
     void setCurrentParent(GraphPtr parent);
 
-    static void setCountGraphs(uint32_t n);
-    static uint32_t getCountGraphs();
+    static void setCountGraphs(uint64_t n);
+    static uint64_t getCountGraphs();
+
+    void resetCounters(GraphPtr where);
 
   protected:
     static std::string defaultName;
@@ -78,14 +80,14 @@ class OrientedGraph : public BasicType,
 
     // each subgraph has one or more outputs. We save them,
     // depending on subgraph instance number
-    std::map<GraphPtr, std::map<int, std::vector<VertexPtr>>>
+    std::map<GraphPtr, std::map<uint64_t, std::vector<VertexPtr>>>
         subGraphsOutputsPtr;
     std::vector<VertexPtr> allSubGraphsOutputs;
     // we have such pairs: number of subragh instances,
-    std::map<GraphPtr, std::map<int, std::vector<VertexPtr>>>
+    std::map<GraphPtr, std::map<uint64_t, std::vector<VertexPtr>>>
         subGraphsInputsPtr;
 
-    static uint32_t count;
+    static uint64_t count;
 
     // also we need to now, was .v file for subgraph created, or not
     bool alreadyParsed = false;

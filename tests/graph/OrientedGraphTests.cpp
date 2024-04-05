@@ -99,4 +99,10 @@ TEST(graph_test, test_add_used_graph) {
               "  Submodule_0 Submodule_0_inst_0 (\n    .input_0( input_10 ),\n"
               "    .input_1( g_12 ),\n    .output_3( g_13 )\n  ); \n");
     EXPECT_THROW(test_data_graph[0]->getInstance(), std::out_of_range);
+
+    test_data_graph[0]->resetCounters(test_data_graph[2]);
+    EXPECT_EQ(test_data_graph[0]->getInstance(),
+              "  Submodule_0 Submodule_0_inst_0 (\n    .input_0( input_10 ),\n"
+              "    .input_1( g_12 ),\n    .output_3( g_13 )\n  ); \n");
+    EXPECT_THROW(test_data_graph[0]->getInstance(), std::out_of_range);
 }

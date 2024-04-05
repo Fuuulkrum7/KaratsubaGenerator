@@ -39,7 +39,7 @@ class GraphVertex : public BasicType {
     // is it [a:b] vertex, values b and a
     GraphVertex(VertexType type,
                 OperationType operation = OperationType::Default,
-                uint32_t upper = 0, uint32_t lower = 0, std::string name = "");
+                uint64_t upper = 0, uint64_t lower = 0, std::string name = "");
     
     GraphVertex(GraphVertex *other);
 
@@ -48,8 +48,8 @@ class GraphVertex : public BasicType {
     GraphVertex(const GraphVertex &other) = default;
     GraphVertex(GraphVertex &&other) = default;
 
-    static uint32_t getCountVertex();
-    static void setCountVertex(uint32_t n);
+    static uint_fast64_t getCountVertex();
+    static void setCountVertex(uint_fast64_t n);
 
     std::string getTypeName() const;
 
@@ -64,11 +64,11 @@ class GraphVertex : public BasicType {
     std::vector<VertexPtr> getOutConnections() const;
     std::vector<VertexPtr> getInConnections() const;
 
-    uint32_t getWireSize() const;
+    uint64_t getWireSize() const;
     std::string getInstance();
 
-    uint32_t getLower() const;
-    uint32_t getUpper() const;
+    uint64_t getLower() const;
+    uint64_t getUpper() const;
 
     virtual std::string toVerilog() override;
 
@@ -83,23 +83,23 @@ class GraphVertex : public BasicType {
     static uint_fast64_t count;
 
     bool multi = false;
-    uint32_t lower, upper;
+    uint64_t lower, upper;
 };
 
 // is used for shift operations and is another class
 // to save memory! More on 2 bytes :) and one function
 class GraphVertexShift : public GraphVertex {
   public:
-    GraphVertexShift(OperationType type, uint32_t shift, uint32_t upper = 0,
-                     uint32_t lower = 0);
+    GraphVertexShift(OperationType type, uint64_t shift, uint64_t upper = 0,
+                     uint64_t lower = 0);
     GraphVertexShift(GraphVertexShift *other);
 
-    uint32_t getShift() const { return shift; }
+    uint64_t getShift() const { return shift; }
 
     std::string toVerilog();
 
   protected:
-    uint32_t shift = 0;
+    uint64_t shift = 0;
 };
 
 class GraphVertexConst : public GraphVertex {

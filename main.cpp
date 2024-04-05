@@ -8,8 +8,8 @@
 
 using namespace std::chrono;
 
-int get_int() {
-    int x = 0;
+int64_t get_int() {
+    int64_t x = 0;
     std::string line;
     bool done = false;
 
@@ -35,7 +35,7 @@ int get_int() {
 }
 
 int main(int argc, char *args[]) {
-    int bitDepth = 0;
+    int64_t bitDepth = 0;
 
     // used for geting n from terminal
     if (argc > 1) {

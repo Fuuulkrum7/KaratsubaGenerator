@@ -1,11 +1,11 @@
 #include "KaratsubaGen.h"
 #include <iostream>
 
-KaratsubaGen::KaratsubaGen(uint32_t bitDepth) { this->bitDepth = bitDepth; }
+KaratsubaGen::KaratsubaGen(uint64_t bitDepth) { this->bitDepth = bitDepth; }
 
-uint32_t KaratsubaGen::getBitDepth() const { return bitDepth; }
+uint64_t KaratsubaGen::getBitDepth() const { return bitDepth; }
 
-void KaratsubaGen::setBitDepth(uint32_t bitDepth) { this->bitDepth = bitDepth; }
+void KaratsubaGen::setBitDepth(uint64_t bitDepth) { this->bitDepth = bitDepth; }
 
 GraphPtr KaratsubaGen::getGraph() const { return graph; }
 
@@ -203,13 +203,13 @@ VertexPtr KaratsubaGen::generateTriple(GraphPtr graphInst,
     return finalRes;
 }
 
-VertexPtr KaratsubaGen::generateMultiple(GraphPtr graphInst, int depth,
+VertexPtr KaratsubaGen::generateMultiple(GraphPtr graphInst, uint64_t depth,
                                          VertexPtr slice_a_older,
                                          VertexPtr slice_a_smaller,
                                          VertexPtr slice_b_older,
                                          VertexPtr slice_b_smaller,
                                          VertexPtr sumA, VertexPtr sumB) {
-    int m = depth / 2;
+    uint64_t m = depth / 2;
     // it's graph for m bits
     GraphPtr mGraph = generate(m);
     // for n - m bits
@@ -252,7 +252,7 @@ VertexPtr KaratsubaGen::generateMultiple(GraphPtr graphInst, int depth,
     return finalSum;
 }
 
-GraphPtr KaratsubaGen::generate(uint32_t depth) {
+GraphPtr KaratsubaGen::generate(uint64_t depth) {
     if (!depth) {
         return nullptr;
     }
@@ -268,7 +268,7 @@ GraphPtr KaratsubaGen::generate(uint32_t depth) {
 
     auto result = graphInst->addOutput(depth * 2 - 1);
 
-    uint32_t m = depth / 2;
+    uint64_t m = depth / 2;
 
     // basic case, when we have only one bit
     if (depth == 1) {

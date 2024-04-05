@@ -13,5 +13,5 @@ uint32_t BasicType::getLevel() const { return level; }
 void BasicType::setLevel(uint32_t level) { this->level = level; }
 void BasicType::setName(std::string name) { this->name = name; }
 
-uint32_t BasicType::getWireSize() const { return 0; }
+uint64_t BasicType::getWireSize() const { return 0; }
 std::string BasicType::getInstance() { return ""; }

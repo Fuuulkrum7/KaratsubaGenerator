@@ -26,7 +26,7 @@ class BasicType {
     void setName(std::string name);
     void setLevel(uint32_t level);
 
-    virtual uint32_t getWireSize() const;
+    virtual uint64_t getWireSize() const;
     virtual std::string getInstance();
 
   protected:
