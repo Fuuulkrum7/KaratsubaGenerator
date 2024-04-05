@@ -64,8 +64,6 @@ GraphVertex::GraphVertex(VertexType type, OperationType operation,
         this->name = name;
     }
 
-    this->multi = lower < upper;
-
     this->lower = lower;
     this->upper = upper;
 }
@@ -75,7 +73,6 @@ GraphVertex::GraphVertex(GraphVertex *other) {
     inConnection = other->inConnection;
     outConnection = other->outConnection;
     name = other->name;
-    multi = other->multi;
     lower = other->lower;
     upper = other->upper;
 
@@ -101,8 +98,6 @@ std::string GraphVertex::getTypeName() const {
 
     return "default";
 }
-
-std::string GraphVertex::getName() const { return name; }
 
 void GraphVertex::setOperation(OperationType operation) {
     this->operation = operation;
@@ -148,9 +143,9 @@ std::string GraphVertex::toVerilog() {
         return "assign " + name + " = " + inConnection.back()->getName() + ";";
     }
     // we do not need to call it, when we have input,
-    // for example, because it parses an operation
+    // for example, because it parses an operation only.
     // in case of input, we just need to declare it
-    // in special way
+    // in specific way
     if (type != VertexType::Operation) {
         return "";
     }
@@ -160,7 +155,7 @@ std::string GraphVertex::toVerilog() {
     if (operation == OperationType::SliceOper) {
         // we have only one operation in this case
         basic += inConnection.back()->getName() + "[" + std::to_string(upper);
-        basic += multi ? " : " + std::to_string(lower) + "];" : "];";
+        basic += getWireSize() ? " : " + std::to_string(lower) + "];" : "];";
 
         return basic;
     }
@@ -204,7 +199,7 @@ GraphVertexConst::GraphVertexConst(int constValue)
 }
 
 std::string GraphVertexConst::toVerilog() {
-    return "localparam " + name + +" = " + std::to_string(constValue) + ";";
+    return "localparam " + name + " = " + std::to_string(constValue) + ";";
 }
 
 GraphVertexConst::GraphVertexConst(GraphVertexConst *other)

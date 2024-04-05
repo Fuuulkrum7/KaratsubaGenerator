@@ -179,6 +179,7 @@ VertexPtr KaratsubaGen::generateTriple(GraphPtr graphInst,
     graphInst->addEdge(sumAB_Diff, shiftSumAB_Diff);
     graphInst->addEdge(multSliceSumAB, shiftMultSliceSumAB);
 
+    // s4 + s6 + s7
     VertexPtr preFinalSum = graphInst->addOperation(OperationType::Sum, 5, 0);
     graphInst->addEdges(
         { multSumAB_Smaller, shiftSumAB_Diff, shiftMultSliceSumAB },
@@ -217,7 +218,7 @@ VertexPtr KaratsubaGen::generateMultiple(GraphPtr graphInst, uint64_t depth,
 
     GraphPtr sumGraph = generate(depth - m + 1);
 
-    // multiplying them
+    // multiplying data in graphs
     VertexPtr outMGraph =
         graphInst->addSubgraph(mGraph, { slice_a_smaller, slice_b_smaller })
             .back();
@@ -256,7 +257,7 @@ GraphPtr KaratsubaGen::generate(uint64_t depth) {
     if (!depth) {
         return nullptr;
     }
-
+    // saves us from unneccesary calc
     if (createdGraphs.count(depth))
         return createdGraphs[depth];
 

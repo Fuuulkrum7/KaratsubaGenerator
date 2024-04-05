@@ -13,8 +13,7 @@ std::string OrientedGraph::defaultName = "Submodule";
 OrientedGraph::OrientedGraph() {
     type = VertexType::Graph;
 
-    name = defaultName + "_" + std::to_string(count);
-    ++count;
+    name = defaultName + "_" + std::to_string(count++);
 }
 
 OrientedGraph::OrientedGraph(std::string name) {
@@ -22,8 +21,7 @@ OrientedGraph::OrientedGraph(std::string name) {
     if (name.size()) {
         this->name = name;
     } else {
-        name = defaultName + "_" + std::to_string(count);
-        ++count;
+        name = defaultName + "_" + std::to_string(count++);
     }
 }
 

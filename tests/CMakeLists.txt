@@ -11,7 +11,7 @@ include(FetchContent)
 FetchContent_Declare(
   gtest
 
-  # Specify the commit you depend on and update it regularly.
+  # Url for googletest download.
   URL https://github.com/google/googletest/archive/5376968f6948923e2411081fd9372e71a59d8e77.zip
 )
 

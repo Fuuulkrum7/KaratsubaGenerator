@@ -67,6 +67,11 @@ class OrientedGraph : public BasicType,
     // for toVerilog current parent graph
     GraphPtr currentParentGraph;
 
+    // all graph inputs
+    // all outputs
+    // all localparam
+    // all operations
+    // all subGraphs (in order they are created)
     std::map<VertexType, std::vector<VertexPtr>> vertices{
         { VertexType::Input, std::vector<VertexPtr>() },
         { VertexType::Output, std::vector<VertexPtr>() },
@@ -75,7 +80,7 @@ class OrientedGraph : public BasicType,
         { VertexType::Graph, std::vector<VertexPtr>() }
     };
 
-    // here are all added subgraphs
+    // here are all unique added subgraphs
     std::set<GraphPtr> subGraphs;
 
     // each subgraph has one or more outputs. We save them,
@@ -87,6 +92,7 @@ class OrientedGraph : public BasicType,
     std::map<GraphPtr, std::map<uint64_t, std::vector<VertexPtr>>>
         subGraphsInputsPtr;
 
+    // graph instances count
     static uint64_t count;
 
     // also we need to now, was .v file for subgraph created, or not
@@ -100,6 +106,7 @@ class OrientedGraph : public BasicType,
     uint64_t parentCount = 0;
 
   private:
+    // path to creating file (.v)
     std::string path = "";
 };
 

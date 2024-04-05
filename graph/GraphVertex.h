@@ -36,11 +36,11 @@ std::string vertexTypeToString(VertexType type);
 class GraphVertex : public BasicType {
   public:
     // type of vertex, operation, provided by it,
-    // is it [a:b] vertex, values b and a
+    // values b and  a for "wire [a:b] vertex;"
     GraphVertex(VertexType type,
                 OperationType operation = OperationType::Default,
                 uint64_t upper = 0, uint64_t lower = 0, std::string name = "");
-    
+
     GraphVertex(GraphVertex *other);
 
     GraphVertex &operator=(const GraphVertex &other) = default;
@@ -51,12 +51,13 @@ class GraphVertex : public BasicType {
     static uint_fast64_t getCountVertex();
     static void setCountVertex(uint_fast64_t n);
 
+    // returns name of variable, depending on vertex type
     std::string getTypeName() const;
 
+    // adding in vertex
     void addParent(VertexPtr vertex);
+    // adding out vertex
     void addChild(VertexPtr vertex);
-
-    std::string getName() const;
 
     void setOperation(OperationType operation);
     OperationType getOperation() const;
@@ -73,21 +74,22 @@ class GraphVertex : public BasicType {
     virtual std::string toVerilog() override;
 
   protected:
+    // operation (used for VertexType::Operation)
     OperationType operation;
 
+    // connections going INTO logic gate
     std::vector<VertexPtr> inConnection;
+    // and FROM it
     std::vector<VertexPtr> outConnection;
 
-    std::string name;
-
+    // count var instances
     static uint_fast64_t count;
 
-    bool multi = false;
     uint64_t lower, upper;
 };
 
 // is used for shift operations and is another class
-// to save memory! More on 2 bytes :) and one function
+// to save memory! More on 8 bytes :) and one function
 class GraphVertexShift : public GraphVertex {
   public:
     GraphVertexShift(OperationType type, uint64_t shift, uint64_t upper = 0,
@@ -102,6 +104,7 @@ class GraphVertexShift : public GraphVertex {
     uint64_t shift = 0;
 };
 
+// class for const vertex
 class GraphVertexConst : public GraphVertex {
   public:
     GraphVertexConst(int constValue);

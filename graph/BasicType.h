@@ -1,8 +1,8 @@
 #ifndef BASIC_TYPE
 #define BASIC_TYPE
 
-#include <string>
 #include <cstdint>
+#include <string>
 
 enum VertexType { Input, Output, Const, Operation, Graph };
 
@@ -15,8 +15,9 @@ class BasicType {
     BasicType(const BasicType &other) = default;
     BasicType(BasicType &&other) = default;
 
-    virtual ~BasicType(); 
+    virtual ~BasicType();
 
+    // parses variable to verilog (module or assign)
     virtual std::string toVerilog();
     VertexType getType();
 
@@ -26,7 +27,9 @@ class BasicType {
     void setName(std::string name);
     void setLevel(uint32_t level);
 
+    // size of wire (for vertex) or sum size of outputs and inputs (for graph)
     virtual uint64_t getWireSize() const;
+    // returns declaration of wire or module
     virtual std::string getInstance();
 
   protected:
