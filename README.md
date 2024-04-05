@@ -14,7 +14,9 @@ For running project, execute
 ```
 ./build/karatsuba <NumberOfBits>
 ```
-Where `NumberOfBits` is bits number, which should be natural.
+Where `NumberOfBits` is bits number, which should be natural. All generated files would be located in folder named `dataset`.
+Main module with `NumberOfBits` size inputs would be located their and would have modulename Karatsuba_0. Other submodules would be located 
+in folder named `submodules` in same directory, where top-module is located (in `dataset`).
 
 If you want to test project code, run 
 ```
