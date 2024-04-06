@@ -102,8 +102,6 @@ class OrientedGraph : public BasicType,
     // We are counting to know, which inputs and outputs should we use now
     std::map<GraphPtr, uint64_t> graphInstanceToVerilogCount;
 
-    uint64_t parentCount = 0;
-
   private:
     // path to creating file (.v)
     std::string path = "";

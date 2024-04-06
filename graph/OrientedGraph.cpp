@@ -42,7 +42,6 @@ OrientedGraph::OrientedGraph(OrientedGraph *other) {
     alreadyParsed = other->alreadyParsed;
     graphInstanceToVerilogCount = other->graphInstanceToVerilogCount;
 
-    parentCount = other->parentCount;
     path = other->path;
 }
 
@@ -363,6 +362,7 @@ std::string OrientedGraph::toVerilog() {
     }
 
     outFile << "endmodule";
+    outFile.close();
 
     alreadyParsed = true;
 
