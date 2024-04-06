@@ -315,6 +315,8 @@ std::string OrientedGraph::toVerilog() {
     for (auto byWireSize :
          { inputByWireSize, outputByWireSize, subGraphOutputsByWireSize }) {
         for (auto [key, value] : byWireSize) {
+            if (!value.size())
+                continue;
             outFile << VertexUtils::vertexTypeToString(value.back()->getType())
                     << " ";
             if (key) {
