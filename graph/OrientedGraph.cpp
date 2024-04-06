@@ -40,7 +40,6 @@ OrientedGraph::OrientedGraph(OrientedGraph *other) {
     subGraphsInputsPtr = other->subGraphsInputsPtr;
 
     alreadyParsed = other->alreadyParsed;
-    graphInstanceCount = other->graphInstanceCount;
     graphInstanceToVerilogCount = other->graphInstanceToVerilogCount;
 
     parentCount = other->parentCount;
@@ -133,15 +132,9 @@ OrientedGraph::addSubgraph(GraphPtr subGraph, std::vector<VertexPtr> inputs) {
         allSubGraphsOutputs.push_back(newVertex);
     }
 
-    if (!subGraph->graphInstanceCount.count(shared_from_this())) {
-        subGraph->graphInstanceCount[shared_from_this()] = 0;
-    }
-    uint64_t *val = &subGraph->graphInstanceCount[shared_from_this()];
     // here we save our inputs and outputs to instance number
-    subGraph->subGraphsInputsPtr[shared_from_this()][*val] = inputs;
-    subGraph->subGraphsOutputsPtr[shared_from_this()][*val] = outputs;
-
-    ++(*val);
+    subGraph->subGraphsInputsPtr[shared_from_this()].push_back(inputs);
+    subGraph->subGraphsOutputsPtr[shared_from_this()].push_back(outputs);
 
     // here we use subgraph like an instance of BasicType,
     // and we call it's toVerilog, having in multiple instance
@@ -215,11 +208,11 @@ void OrientedGraph::resetCounters(GraphPtr where) {
 // for parsing graph to module instance
 std::string OrientedGraph::getInstance() {
     uint64_t *verilogCount = &graphInstanceToVerilogCount[currentParentGraph];
-    uint64_t *allCount = &graphInstanceCount[currentParentGraph];
+    uint64_t allCount = subGraphsInputsPtr[currentParentGraph].size();
 
-    if (*verilogCount == *allCount) {
+    if (*verilogCount == allCount) {
         throw std::out_of_range("Incorrect getInstance call. All modules (" +
-                                std::to_string(*allCount) +
+                                std::to_string(allCount) +
                                 ") were already parsed");
     }
 

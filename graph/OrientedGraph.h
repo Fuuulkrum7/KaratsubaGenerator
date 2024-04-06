@@ -85,11 +85,11 @@ class OrientedGraph : public BasicType,
 
     // each subgraph has one or more outputs. We save them,
     // depending on subgraph instance number
-    std::map<GraphPtr, std::map<uint64_t, std::vector<VertexPtr>>>
+    std::map<GraphPtr, std::vector<std::vector<VertexPtr>>>
         subGraphsOutputsPtr;
     std::vector<VertexPtr> allSubGraphsOutputs;
     // we have such pairs: number of subragh instances,
-    std::map<GraphPtr, std::map<uint64_t, std::vector<VertexPtr>>>
+    std::map<GraphPtr, std::vector<std::vector<VertexPtr>>>
         subGraphsInputsPtr;
 
     // graph instances count
@@ -98,9 +98,8 @@ class OrientedGraph : public BasicType,
     // also we need to now, was .v file for subgraph created, or not
     bool alreadyParsed = false;
     // We can add a subgraph multiple times
-    // so we need to count instances
-    std::map<GraphPtr, uint64_t> graphInstanceCount;
-    // we are counting to know, which inputs and outputs should we use now
+    // so we need to count instances to verilog.
+    // We are counting to know, which inputs and outputs should we use now
     std::map<GraphPtr, uint64_t> graphInstanceToVerilogCount;
 
     uint64_t parentCount = 0;
