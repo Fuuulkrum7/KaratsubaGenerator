@@ -6,6 +6,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_INIT} -std=c++17 -fPIC")
 SET(GCC_COVERAGE_LINK_FLAGS "-lgcov")
 set(CMAKE_CXX_STANDARD 17)
 
+add_compile_options(-fsanitize=address)
+add_link_options(-fsanitize=address)
+
 include(FetchContent)
 
 FetchContent_Declare(

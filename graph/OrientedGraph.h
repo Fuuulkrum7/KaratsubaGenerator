@@ -12,6 +12,7 @@
 #include "GraphVertex.h"
 
 #define GraphPtr std::shared_ptr<OrientedGraph>
+#define GraphPtrWeak std::weak_ptr<OrientedGraph>
 
 class OrientedGraph : public BasicType,
                       public std::enable_shared_from_this<OrientedGraph> {
@@ -27,8 +28,8 @@ class OrientedGraph : public BasicType,
 
     ~OrientedGraph() = default;
 
-    std::set<GraphPtr> getParents() const;
-    void addParent(GraphPtr parent);
+    std::vector<GraphPtrWeak> getParents() const;
+    void addParent(GraphPtrWeak parent);
 
     std::string toVerilog();
 
@@ -61,11 +62,15 @@ class OrientedGraph : public BasicType,
 
   protected:
     static std::string defaultName;
+    // whole instance count
+    static size_t countNewGraphInstance;
+    // curr instance ID
+    size_t graphID;
     // is a subgraph when size is zero
-    std::set<GraphPtr> parentGraphs;
+    std::vector<GraphPtrWeak> parentGraphs;
     // as we can have multiple parents, we save
     // for toVerilog current parent graph
-    GraphPtr currentParentGraph;
+    GraphPtrWeak currentParentGraph;
 
     // all graph inputs
     // all outputs
@@ -85,12 +90,10 @@ class OrientedGraph : public BasicType,
 
     // each subgraph has one or more outputs. We save them,
     // depending on subgraph instance number
-    std::map<GraphPtr, std::vector<std::vector<VertexPtr>>>
-        subGraphsOutputsPtr;
+    std::map<uint64_t, std::vector<std::vector<VertexPtr>>> subGraphsOutputsPtr;
     std::vector<VertexPtr> allSubGraphsOutputs;
     // we have such pairs: number of subragh instances,
-    std::map<GraphPtr, std::vector<std::vector<VertexPtr>>>
-        subGraphsInputsPtr;
+    std::map<uint64_t, std::vector<std::vector<VertexPtr>>> subGraphsInputsPtr;
 
     // graph instances count
     static uint64_t count;
@@ -100,7 +103,7 @@ class OrientedGraph : public BasicType,
     // We can add a subgraph multiple times
     // so we need to count instances to verilog.
     // We are counting to know, which inputs and outputs should we use now
-    std::map<GraphPtr, uint64_t> graphInstanceToVerilogCount;
+    std::map<uint64_t, uint64_t> graphInstanceToVerilogCount;
 
   private:
     // path to creating file (.v)

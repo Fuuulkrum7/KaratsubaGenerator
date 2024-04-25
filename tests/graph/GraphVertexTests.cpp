@@ -8,20 +8,26 @@ std::vector<std::shared_ptr<GraphVertex>> test_data;
 
 TEST(vertex_test, test_names) {
     GraphVertex::setCountVertex(0);
-    std::vector<std::string> names = { "input_0", "output_1", "input_2", "g_3",
-                                       "const_4", "g_5" };
-    test_data.push_back(
-        std::make_shared<GraphVertex>(new GraphVertex(VertexType::Input)));
-    test_data.push_back(
-        std::make_shared<GraphVertex>(new GraphVertex(VertexType::Output)));
-    test_data.push_back(
-        std::make_shared<GraphVertex>(new GraphVertex(VertexType::Input)));
-    test_data.push_back(std::make_shared<GraphVertex>(
-        new GraphVertex(VertexType::Operation, OperationType::Not)));
-    test_data.push_back(
-        std::make_shared<GraphVertex>(new GraphVertex(VertexType::Const)));
-    test_data.push_back(std::make_shared<GraphVertexShift>(
-        new GraphVertexShift(OperationType::LShift, 1, 1, 0)));
+    std::vector<std::string> names = { "input_0", "output_1", "input_2",
+                                       "g_3",     "const_4",  "g_5" };
+
+    std::shared_ptr<GraphVertex> ptr(new GraphVertex(VertexType::Input));
+    test_data.push_back(ptr);
+
+    ptr.reset(new GraphVertex(VertexType::Output));
+    test_data.push_back(ptr);
+
+    ptr.reset(new GraphVertex(VertexType::Input));
+    test_data.push_back(ptr);
+
+    ptr.reset(new GraphVertex(VertexType::Operation, OperationType::Not));
+    test_data.push_back(ptr);
+
+    ptr.reset(new GraphVertex(VertexType::Const));
+    test_data.push_back(ptr);
+    
+    ptr.reset(new GraphVertexShift(OperationType::LShift, 1, 1, 0));
+    test_data.push_back(ptr);
 
     for (int i = 0; i < names.size(); ++i) {
         EXPECT_EQ(names[i], test_data[i]->getName());

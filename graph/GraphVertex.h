@@ -8,6 +8,7 @@
 #include "BasicType.h"
 
 #define VertexPtr std::shared_ptr<BasicType>
+#define VertexPtrWeak std::weak_ptr<BasicType>
 
 enum OperationType {
     Default,
@@ -63,7 +64,7 @@ class GraphVertex : public BasicType {
     OperationType getOperation() const;
 
     std::vector<VertexPtr> getOutConnections() const;
-    std::vector<VertexPtr> getInConnections() const;
+    std::vector<VertexPtrWeak> getInConnections() const;
 
     uint64_t getWireSize() const;
     std::string getInstance();
@@ -78,7 +79,7 @@ class GraphVertex : public BasicType {
     OperationType operation;
 
     // connections going INTO logic gate
-    std::vector<VertexPtr> inConnection;
+    std::vector<VertexPtrWeak> inConnection;
     // and FROM it
     std::vector<VertexPtr> outConnection;
 

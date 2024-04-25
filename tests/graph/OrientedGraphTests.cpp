@@ -11,13 +11,16 @@ TEST(graph_test, test_graph_names) {
     std::vector<std::string> names = { "Submodule_0", "Submodule_1",
                                        "TestGraph_2" };
 
-    test_data_graph.push_back(
-        std::make_shared<OrientedGraph>(new OrientedGraph()));
-    test_data_graph.push_back(
-        std::make_shared<OrientedGraph>(new OrientedGraph()));
+    GraphPtr ptr(new OrientedGraph());
+    test_data_graph.push_back(ptr);
+
+    ptr.reset(new OrientedGraph());
+    test_data_graph.push_back(ptr);
+
     OrientedGraph::setDefaultName("TestGraph");
-    test_data_graph.push_back(
-        std::make_shared<OrientedGraph>(new OrientedGraph()));
+
+    ptr.reset(new OrientedGraph());
+    test_data_graph.push_back(ptr);
 
     for (int i = 0; i < names.size(); ++i) {
         EXPECT_EQ(names[i], test_data_graph[i]->getName());

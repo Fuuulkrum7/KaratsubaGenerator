@@ -7,16 +7,19 @@
 #include "OrientedGraph.h"
 
 uint64_t OrientedGraph::count = 0;
+size_t OrientedGraph::countNewGraphInstance = 0;
 
 std::string OrientedGraph::defaultName = "Submodule";
 
 OrientedGraph::OrientedGraph() {
+    graphID = countNewGraphInstance++;
     type = VertexType::Graph;
 
     name = defaultName + "_" + std::to_string(count++);
 }
 
 OrientedGraph::OrientedGraph(std::string name) {
+    graphID = countNewGraphInstance++;
     type = VertexType::Graph;
     if (name.size()) {
         this->name = name;
@@ -29,6 +32,7 @@ OrientedGraph::OrientedGraph(OrientedGraph *other) {
     type = other->type;
     level = other->level;
     name = other->name;
+    graphID = other->graphID;
 
     parentGraphs = other->parentGraphs;
     currentParentGraph = other->currentParentGraph;
@@ -45,21 +49,21 @@ OrientedGraph::OrientedGraph(OrientedGraph *other) {
     path = other->path;
 }
 
-void OrientedGraph::setCountGraphs(uint64_t n) {
-    count = n;
-}
+void OrientedGraph::setCountGraphs(uint64_t n) { count = n; }
 
-uint64_t OrientedGraph::getCountGraphs() {
-    return count;
-}
+uint64_t OrientedGraph::getCountGraphs() { return count; }
 
-std::set<GraphPtr> OrientedGraph::getParents() const { return parentGraphs; }
+std::vector<GraphPtrWeak> OrientedGraph::getParents() const {
+    return parentGraphs;
+}
 
 void OrientedGraph::setDefaultName(std::string name) { defaultName = name; }
 
 std::string OrientedGraph::getDefaultName() { return defaultName; }
 
-void OrientedGraph::addParent(GraphPtr parent) { parentGraphs.insert(parent); }
+void OrientedGraph::addParent(GraphPtrWeak parent) {
+    parentGraphs.push_back(parent);
+}
 
 std::vector<VertexPtr> OrientedGraph::getVertexesByType(VertexType type) const {
     return vertices.at(type);
@@ -132,8 +136,8 @@ OrientedGraph::addSubgraph(GraphPtr subGraph, std::vector<VertexPtr> inputs) {
     }
 
     // here we save our inputs and outputs to instance number
-    subGraph->subGraphsInputsPtr[shared_from_this()].push_back(inputs);
-    subGraph->subGraphsOutputsPtr[shared_from_this()].push_back(outputs);
+    subGraph->subGraphsInputsPtr[graphID].push_back(inputs);
+    subGraph->subGraphsOutputsPtr[graphID].push_back(outputs);
 
     // here we use subgraph like an instance of BasicType,
     // and we call it's toVerilog, having in multiple instance
@@ -201,13 +205,14 @@ void OrientedGraph::setCurrentParent(GraphPtr parent) {
 }
 
 void OrientedGraph::resetCounters(GraphPtr where) {
-    graphInstanceToVerilogCount[where] = 0;
+    graphInstanceToVerilogCount[where->graphID] = 0;
 }
 
 // for parsing graph to module instance
 std::string OrientedGraph::getInstance() {
-    uint64_t *verilogCount = &graphInstanceToVerilogCount[currentParentGraph];
-    uint64_t allCount = subGraphsInputsPtr[currentParentGraph].size();
+    uint64_t parentID = currentParentGraph.lock()->graphID;
+    uint64_t *verilogCount = &graphInstanceToVerilogCount[parentID];
+    uint64_t allCount = subGraphsInputsPtr[parentID].size();
 
     if (*verilogCount == allCount) {
         throw std::out_of_range("Incorrect getInstance call. All modules (" +
@@ -220,7 +225,7 @@ std::string OrientedGraph::getInstance() {
     std::string module_ver = verilogTab + name + " " + name + "_inst_" +
                              std::to_string(*verilogCount) + " (\n";
     for (size_t i = 0; i < vertices[VertexType::Input].size(); ++i) {
-        auto inp = subGraphsInputsPtr[currentParentGraph][*verilogCount][i];
+        auto inp = subGraphsInputsPtr[parentID][*verilogCount][i];
         std::string inp_name = vertices[VertexType::Input][i]->getName();
 
         module_ver += verilogTab + verilogTab + "." + inp_name + "( ";
@@ -228,8 +233,7 @@ std::string OrientedGraph::getInstance() {
     }
 
     for (size_t i = 0; i < vertices[VertexType::Output].size() - 1; ++i) {
-        VertexPtr out =
-            subGraphsOutputsPtr[currentParentGraph][*verilogCount][i];
+        VertexPtr out = subGraphsOutputsPtr[parentID][*verilogCount][i];
         std::string out_name = vertices[VertexType::Output][i]->getName();
 
         module_ver += verilogTab + verilogTab + "." + out_name + "( ";
@@ -239,10 +243,8 @@ std::string OrientedGraph::getInstance() {
     std::string out_name = vertices[VertexType::Output].back()->getName();
 
     module_ver += verilogTab + verilogTab + "." + out_name + "( ";
-    module_ver += subGraphsOutputsPtr[currentParentGraph][*verilogCount]
-                      .back()
-                      ->getName() +
-                  " )\n";
+    module_ver +=
+        subGraphsOutputsPtr[parentID][*verilogCount].back()->getName() + " )\n";
     module_ver += verilogTab + "); \n";
 
     ++(*verilogCount);
@@ -315,8 +317,9 @@ std::string OrientedGraph::toVerilog() {
     for (auto byWireSize :
          { inputByWireSize, outputByWireSize, subGraphOutputsByWireSize }) {
         for (auto [key, value] : byWireSize) {
-            if (!value.size())
+            if (!value.size()) {
                 continue;
+            }
             outFile << VertexUtils::vertexTypeToString(value.back()->getType())
                     << " ";
             if (key) {

@@ -117,7 +117,7 @@ std::vector<VertexPtr> GraphVertex::getOutConnections() const {
     return outConnection;
 }
 
-std::vector<VertexPtr> GraphVertex::getInConnections() const {
+std::vector<VertexPtrWeak> GraphVertex::getInConnections() const {
     return inConnection;
 }
 
@@ -140,7 +140,7 @@ uint64_t GraphVertex::getUpper() const { return upper; }
 
 std::string GraphVertex::toVerilog() {
     if (type == VertexType::Output) {
-        return "assign " + name + " = " + inConnection.back()->getName() + ";";
+        return "assign " + name + " = " + inConnection.back().lock()->getName() + ";";
     }
     // we do not need to call it, when we have input,
     // for example, because it parses an operation only.
@@ -154,7 +154,7 @@ std::string GraphVertex::toVerilog() {
 
     if (operation == OperationType::SliceOper) {
         // we have only one operation in this case
-        basic += inConnection.back()->getName() + "[" + std::to_string(upper);
+        basic += inConnection.back().lock()->getName() + "[" + std::to_string(upper);
         basic += getWireSize() ? " : " + std::to_string(lower) + "];" : "];";
 
         return basic;
@@ -166,12 +166,12 @@ std::string GraphVertex::toVerilog() {
         operation == OperationType::RShift) {
         // in default, if we did not use special class for shift
         // we just move val on 1
-        basic += inConnection.back()->getName() + " " + oper + " 1;";
+        basic += inConnection.back().lock()->getName() + " " + oper + " 1;";
         return basic;
     }
 
     if (operation == OperationType::Not || operation == OperationType::Buf) {
-        basic += oper + inConnection.back()->getName() + ";";
+        basic += oper + inConnection.back().lock()->getName() + ";";
 
         return basic;
     }
@@ -186,9 +186,9 @@ std::string GraphVertex::toVerilog() {
     }
 
     for (size_t i = 0; i < inConnection.size() - 1; ++i) {
-        basic += inConnection[i]->getName() + " " + oper + " ";
+        basic += inConnection[i].lock()->getName() + " " + oper + " ";
     }
-    basic += inConnection.back()->getName() + end + ";";
+    basic += inConnection.back().lock()->getName() + end + ";";
 
     return basic;
 }
@@ -229,7 +229,7 @@ std::string GraphVertexShift::toVerilog() {
     std::string basic = "assign " + name + " = ";
     std::string oper = VertexUtils::operationToString(operation);
 
-    basic += inConnection.back()->getName() + " " + oper + " " +
+    basic += inConnection.back().lock()->getName() + " " + oper + " " +
              std::to_string(shift) + ";";
 
     return basic;

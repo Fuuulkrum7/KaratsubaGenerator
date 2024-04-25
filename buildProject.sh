@@ -4,5 +4,5 @@ if [ ! -d "build" ]; then
 fi
 cd build
 cmake ..
-make -j 10
+make -j $(nproc)
 cd ..
